@@ -1,6 +1,6 @@
 import numpy as np
-from Pyfhel import PyCtxt, Pyfhel, PyPtxt
-from Pyfhel.util import ENCODING_t
+from Pyfhel import PyCtxt, PyPtxt
+
 
 def encode_vector(HE, vector):
     """Encode a single vector in a PyPtxt vector.
@@ -17,10 +17,11 @@ def encode_vector(HE, vector):
         np.array( dtype=PyPtxt ) with encoded values
     """
     result = np.empty((len(vector)), dtype=PyPtxt)
-    
+
     for i in range(0, len(vector)):
         result[i] = HE.encodeFrac(vector[i])
     return result
+
 
 def encode_matrix(HE, matrix):
     """Encode a 4D-matrix in a PyPtxt 4D-matrix.
@@ -41,15 +42,16 @@ def encode_matrix(HE, matrix):
     n_rows = len(matrix[0][0])
     n_columns = len(matrix[0][0][0])
     result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=PyPtxt)
-    
+
     for n_matrix in range(0, n_matrixes):
         for n_layer in range(0, n_layers):
             for i in range(0, n_rows):
                 for k in range(0, n_columns):
                     result[n_matrix][n_layer][i][k] = HE.encodeFrac(
-                                                        matrix[n_matrix][n_layer][i][k]
-                                                        )
+                        matrix[n_matrix][n_layer][i][k]
+                    )
     return result
+
 
 def encrypt_matrix(HE, matrix):
     """Encrypt a 4D-matrix in a PyCtxt 4D-matrix.
@@ -70,15 +72,16 @@ def encrypt_matrix(HE, matrix):
     n_rows = len(matrix[0][0])
     n_columns = len(matrix[0][0][0])
     result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=PyCtxt)
-    
+
     for n_matrix in range(0, n_matrixes):
         for n_layer in range(0, n_layers):
             for i in range(0, n_rows):
                 for k in range(0, n_columns):
                     result[n_matrix][n_layer][i][k] = HE.encryptFrac(
-                                                        matrix[n_matrix][n_layer][i][k]
-                                                        )
+                        matrix[n_matrix][n_layer][i][k]
+                    )
     return result
+
 
 def encrypt_matrix_2x2(HE, matrix):
     """Encrypt a 2x2 matrix in a PyCtxt 2x2 matrix.
@@ -102,6 +105,7 @@ def encrypt_matrix_2x2(HE, matrix):
             result[i][k] = HE.encryptFrac(matrix[i][k])
     return result
 
+
 def decrypt_matrix(HE, matrix):
     """Decrypt a 4D matrix in a float 4D matrix.
 
@@ -121,12 +125,12 @@ def decrypt_matrix(HE, matrix):
     n_rows = len(matrix[0][0])
     n_columns = len(matrix[0][0][0])
     result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=float)
-    
+
     for n_matrix in range(0, n_matrixes):
         for n_layer in range(0, n_layers):
             for i in range(0, n_rows):
                 for k in range(0, n_columns):
                     result[n_matrix][n_layer][i][k] = HE.decryptFrac(
-                                                    matrix[n_matrix][n_layer][i][k]
-                                                    )
+                        matrix[n_matrix][n_layer][i][k]
+                    )
     return result
