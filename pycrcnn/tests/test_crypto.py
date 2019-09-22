@@ -22,22 +22,29 @@ class TestSum(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-        matrix = np.array([[
-            [[1, 2]
-                , [3, 4]
-             ],
-            [[5, 6]
-                , [7, 8]
-             ]
-        ]
-            , [
-                [[10, 20]
-                    , [30, 40]
-                 ],
-                [[50, 60]
-                    , [70, 80]
+        matrix = np.array([
+            [
+                [
+                    [1, 2]
+                   ,[3, 4]
+                ],
+                [
+                    [5, 6]
+                   ,[7, 8]
+                ]
+            ]
+           ,[
+                [
+                    [10, 20]
+                   ,[30, 40]
+                ],
+                [
+                    [50, 60]
+                   ,[70, 80]
                  ]
-            ]])
+            ]
+        ])
+
         result = crypto.encode_matrix(HE, matrix)
         self.assertEqual(HE.decodeFrac(result[0][0][0][0]), 1)
         self.assertEqual(HE.decodeFrac(result[0][0][0][1]), 2)
@@ -55,6 +62,21 @@ class TestSum(unittest.TestCase):
         self.assertEqual(HE.decodeFrac(result[1][1][0][1]), 60)
         self.assertEqual(HE.decodeFrac(result[1][1][1][0]), 70)
         self.assertEqual(HE.decodeFrac(result[1][1][1][1]), 80)
+
+    def test_encode_matrix_2x2(self):
+        HE = Pyfhel()
+        HE.contextGen(65537)
+        HE.keyGen()
+        matrix = np.array([
+            [1, 2]
+           ,[3, 4]
+        ])
+
+        result = crypto.encode_matrix_2x2(HE, matrix)
+        self.assertEqual(HE.decodeFrac(result[0][0]), 1)
+        self.assertEqual(HE.decodeFrac(result[0][1]), 2)
+        self.assertEqual(HE.decodeFrac(result[1][0]), 3)
+        self.assertEqual(HE.decodeFrac(result[1][1]), 4)
 
     def test_encrypt_matrix(self):
         HE = Pyfhel()
@@ -99,12 +121,22 @@ class TestSum(unittest.TestCase):
         HE.contextGen(65537)
         HE.keyGen()
         matrix = np.array([[1, 2]
-                              , [3, 4]])
+                          ,[3, 4]])
         result = crypto.encrypt_matrix_2x2(HE, matrix)
         self.assertEqual(HE.decryptFrac(result[0][0]), 1)
         self.assertEqual(HE.decryptFrac(result[0][1]), 2)
         self.assertEqual(HE.decryptFrac(result[1][0]), 3)
         self.assertEqual(HE.decryptFrac(result[1][1]), 4)
+
+    def test_decrypt_matrix_2x2(self):
+        HE = Pyfhel()
+        HE.contextGen(65537)
+        HE.keyGen()
+        matrix = np.array([[1, 2]
+                          ,[3, 4]])
+        encrypted_matrix = crypto.encrypt_matrix_2x2(HE, matrix)
+        result = crypto.decrypt_matrix_2x2(HE, encrypted_matrix)
+        self.assertEqual(result.all(), matrix.all())
 
     def test_decrypt_matrix(self):
         HE = Pyfhel()
