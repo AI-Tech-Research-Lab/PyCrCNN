@@ -2,7 +2,7 @@ import numpy as np
 
 from Pyfhel import PyCtxt
 
-from pycrcnn.crypto import crypto as c
+from ..crypto import crypto as c
 
 
 class ConvolutionalLayer:
@@ -99,12 +99,12 @@ def convolute(HE, image, filters, x_stride, y_stride):
 
         for n_filter in range(0, n_filters):
 
-            partial_result = c.encrypt_matrix_2x2(HE, np.zeros((x_o, y_o), dtype=float))
+            partial_result = c.encode_matrix_2x2(HE, np.zeros((x_o, y_o), dtype=float))
             for n_layer in range(0, n_layers):
-                partial_result = partial_result + convolute2d(image[n_image][n_layer]
-                                                              , filters[n_filter][n_layer]
-                                                              , x_stride
-                                                              , y_stride)
+                partial_result = convolute2d(image[n_image][n_layer]
+                                             , filters[n_filter][n_layer]
+                                             , x_stride
+                                             , y_stride) + partial_result
             result[n_image][n_filter] = partial_result
 
     return result

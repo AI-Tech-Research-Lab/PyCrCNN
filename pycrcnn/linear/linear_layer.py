@@ -2,7 +2,7 @@ import numpy as np
 
 from Pyfhel import PyCtxt
 
-from pycrcnn.crypto import crypto as c
+from ..crypto import crypto as c
 
 
 class LinearLayer:
