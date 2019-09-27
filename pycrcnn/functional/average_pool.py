@@ -2,10 +2,30 @@ import numpy as np
 
 from Pyfhel import PyCtxt
 
-from ..crypto import crypto as c
-
 
 def avg_pool2d(HE, image, kernel_size, stride):
+    """Execute the average pooling operation, given a batch of images,
+        a kernel dimension and the stride.
+
+
+        Parameters
+        ----------
+        HE : Pyfhel
+            Pyfhel object
+        image : np.array( dtype=PyCtxt )
+            Encrypted image to execute the convolution on, in the form
+            [n_images, n_layers, y, x]
+        kernel_size : int
+            size of the square kernel
+        stride : int
+
+        Returns
+        -------
+        result : np.array( dtype=PtCtxt )
+            Encrypted result of the pooling, in the form
+            [n_images, n_layers, y, x]
+        """
+
     n_images = len(image)
     n_layers = len(image[0])
     x_d = len(image[0][0])
@@ -23,6 +43,26 @@ def avg_pool2d(HE, image, kernel_size, stride):
 
 
 def _avg(HE, image, kernel_size, stride):
+    """Execute an average pooling operation given an 2D-image,
+        a kernel-size and a stride.
+
+
+        Parameters
+        ----------
+        HE: PYfhel object
+        image : np.array( dtype=PyCtxt )
+            Encrypted image to execute the pooling, in the form
+            [y, x]
+        kernel_size : int
+            size of the square kernel
+        stride : int
+
+        Returns
+        -------
+        result : np.array( dtype=PtCtxt )
+            Encrypted result of the pooling, in the form
+            [y, x]
+        """
     x_d = len(image[0])
     y_d = len(image)
 
