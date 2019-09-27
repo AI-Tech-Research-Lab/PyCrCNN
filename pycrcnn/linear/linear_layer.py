@@ -77,7 +77,10 @@ def linear_multiply(HE, vector, matrix):
         for i in range(0, out_features):
             sum = HE.encryptFrac(0)
             for j in range(0, in_features):
-                sum = sum + (vector[n_image][j] * matrix[i][j])
+                partial_mul = vector[n_image][j] * matrix[i][j]
+                HE.relinearize(partial_mul)
+                sum = sum + partial_mul
             result[n_image][i] = sum
+
 
     return result

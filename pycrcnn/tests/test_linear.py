@@ -12,6 +12,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         new_weights = np.array([
             [1, 2, 3, 4]
@@ -61,10 +62,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-
-        HE = Pyfhel()
-        HE.contextGen(65537)
-        HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         new_weights = np.array([
             [1, 2, 3, 4]
@@ -94,6 +92,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         flattened_input = np.array([
                 [1, 2, 3, 4]

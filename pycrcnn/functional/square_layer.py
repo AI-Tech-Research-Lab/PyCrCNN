@@ -30,6 +30,7 @@ def square(HE, image):
             for x in range(0, x_d):
                 for y in range(0, y_d):
                     image[n_image][n_layer][y][x] = HE.square(image[n_image][n_layer][y][x])
+                    HE.relinearize(image[n_image][n_layer][y][x])
     return image
 
 
@@ -56,4 +57,5 @@ def square2d(HE, image):
     for x in range(0, x_d):
         for y in range(0, y_d):
             image[y][x] = HE.square(image[y][x])
+            HE.relinearize(image[y][x])
     return image

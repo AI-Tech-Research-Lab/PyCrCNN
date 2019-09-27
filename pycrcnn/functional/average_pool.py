@@ -79,5 +79,6 @@ def _avg(HE, image, kernel_size, stride):
             index_column = j * stride
             result[i][j] = np.sum(image[index_row:index_row + kernel_size
                                   , index_column:index_column + kernel_size]) * denominator
+            HE.relinearize(result[i][j])
 
     return result

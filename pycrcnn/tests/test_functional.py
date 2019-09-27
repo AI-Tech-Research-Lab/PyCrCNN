@@ -22,6 +22,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
         image = np.array([
             [
                 [
@@ -85,7 +86,7 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(result.all(), expected_result.all())
 
-    def test_convolute2d(self):
+    def test__avg(self):
         """ Procedure:
                     1. Create a image in the form
                         [y, x]
@@ -98,6 +99,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 30)
         # Shape of image is [1, 1, 5, 5]. Needed to use encrypt_matrix.
         image = np.array([[[
             [1, 1, 1, 0, 0]
@@ -123,6 +125,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         image = np.array([
             [
@@ -199,90 +202,11 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(expected_result.all(), result.all())
 
-        def test_square_layer(self):
-            HE = Pyfhel()
-            HE.contextGen(65537)
-            HE.keyGen()
-
-            image = np.array([
-                [
-                    [
-                        [1, 1, 1, 0, 0]
-                        , [0, 1, 1, 1, 0]
-                        , [0, 0, 1, 1, 1]
-                        , [0, 0, 1, 1, 0]
-                        , [0, 1, 1, 0, 0]
-                    ],
-                    [
-                        [1, 0, 1, 1, 0]
-                        , [0, 1, 2, 0, 0]
-                        , [0, 0, 1, 0, 1]
-                        , [0, 1, 1, 1, 0]
-                        , [0, 1, 0, 0, 0]],
-                ],
-                [
-                    [
-                        [1, 1, 1, 0, 0]
-                        , [0, 1, 2, 1, 1]
-                        , [0, 0, 1, 1, 1]
-                        , [1, 0, 2, 1, 0]
-                        , [0, 0, 1, 0, 0]
-                    ],
-                    [
-                        [1, 0, 2, 0, 0]
-                        , [0, 1, 1, 1, 2]
-                        , [1, 0, 0, 1, 1]
-                        , [0, 0, 1, 1, 0]
-                        , [0, 0, 2, 0, 0]
-                    ]
-                ]
-            ])
-
-            expected_result = np.array([
-                [
-                    [
-                        [1, 1, 1, 0, 0]
-                        , [0, 1, 1, 1, 0]
-                        , [0, 0, 1, 1, 1]
-                        , [0, 0, 1, 1, 0]
-                        , [0, 1, 1, 0, 0]
-                    ],
-                    [
-                        [1, 0, 1, 1, 0]
-                        , [0, 1, 4, 0, 0]
-                        , [0, 0, 1, 0, 1]
-                        , [0, 1, 1, 1, 0]
-                        , [0, 1, 0, 0, 0]],
-                ],
-                [
-                    [
-                        [1, 1, 1, 0, 0]
-                        , [0, 1, 4, 1, 1]
-                        , [0, 0, 1, 1, 1]
-                        , [1, 0, 4, 1, 0]
-                        , [0, 0, 1, 0, 0]
-                    ],
-                    [
-                        [1, 0, 4, 0, 0]
-                        , [0, 1, 1, 1, 4]
-                        , [1, 0, 0, 1, 1]
-                        , [0, 0, 1, 1, 0]
-                        , [0, 0, 4, 0, 0]
-                    ]
-                ]
-            ])
-
-            encrypted_image = cr.encrypt_matrix(HE, image)
-            encrypted_result = sq.square(HE, encrypted_image)
-
-            result = cr.decrypt_matrix(HE, encrypted_result)
-
-            self.assertEqual(expected_result.all(), result.all())
-
     def test_square_layer2D(self):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 30)
 
         image = np.array([
                     [1, 2, 1, 3, 0]

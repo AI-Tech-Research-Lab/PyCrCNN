@@ -13,6 +13,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         new_weights = np.array(
             [
@@ -65,6 +66,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
 
         new_weights = np.array(
             [
@@ -118,6 +120,8 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
+
         image = np.array([
             [
                 [
@@ -224,6 +228,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
+        HE.relinKeyGen(30, 100)
         # Shape of image is [1, 1, 5, 5]. Needed to use encrypt_matrix.
         image = np.array([[[
             [1, 1, 1, 0, 0]
@@ -243,7 +248,7 @@ class MyTestCase(unittest.TestCase):
         encrypted_image = cr.encrypt_matrix(HE, image)
         encoded_filter = cr.encode_matrix(HE, filter_matrix)
 
-        encrypted_result = conv.convolute2d(encrypted_image[0][0], encoded_filter[0][0], 1, 1)
+        encrypted_result = conv.convolute2d(HE, encrypted_image[0][0], encoded_filter[0][0], 1, 1)
 
         self.assertEqual(HE.decryptFrac(encrypted_result[0][0]), 4)
         self.assertEqual(HE.decryptFrac(encrypted_result[0][1]), 3)

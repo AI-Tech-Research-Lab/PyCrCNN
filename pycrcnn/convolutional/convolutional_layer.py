@@ -101,7 +101,7 @@ def convolute(HE, image, filters, x_stride, y_stride):
 
             partial_result = c.encode_matrix_2x2(HE, np.zeros((x_o, y_o), dtype=float))
             for n_layer in range(0, n_layers):
-                partial_result = convolute2d(image[n_image][n_layer]
+                partial_result = convolute2d(HE, image[n_image][n_layer]
                                              , filters[n_filter][n_layer]
                                              , x_stride
                                              , y_stride) + partial_result
@@ -110,7 +110,7 @@ def convolute(HE, image, filters, x_stride, y_stride):
     return result
 
 
-def convolute2d(image, filter_matrix, x_stride, y_stride):
+def convolute2d(HE, image, filter_matrix, x_stride, y_stride):
     """Execute a convolution operation given an 2D-image, a 2D-filter
     and related strides.
 
@@ -150,5 +150,6 @@ def convolute2d(image, filter_matrix, x_stride, y_stride):
             index_column = j * x_stride
             result[i][j] = np.sum(image[index_row:index_row + y_f
                                   , index_column:index_column + x_f] * filter_matrix)
+            HE.relinearize(result[i][j])
 
     return result
