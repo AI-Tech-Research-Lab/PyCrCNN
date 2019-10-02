@@ -99,7 +99,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-        HE.relinKeyGen(30, 30)
+        HE.relinKeyGen(20, 30)
         # Shape of image is [1, 1, 5, 5]. Needed to use encrypt_matrix.
         image = np.array([[[
             [1, 1, 1, 0, 0]
@@ -125,7 +125,7 @@ class MyTestCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-        HE.relinKeyGen(30, 100)
+        HE.relinKeyGen(20, 100)
 
         image = np.array([
             [
@@ -152,7 +152,7 @@ class MyTestCase(unittest.TestCase):
                     , [0, 0, 1, 0, 0]
                 ],
                 [
-                    [1, 0, 2, 0, 0]
+                    [-1, 0, 2, 0, 0]
                     , [0, 1, 1, 1, 2]
                     , [1, 0, 0, 1, 1]
                     , [0, 0, 1, 1, 0]
@@ -204,12 +204,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_square_layer2D(self):
         HE = Pyfhel()
-        HE.contextGen(65537)
+        HE.contextGen(65)
         HE.keyGen()
-        HE.relinKeyGen(30, 30)
+        HE.relinKeyGen(20, 30)
 
         image = np.array([
-                    [1, 2, 1, 3, 0]
+                    [1, -2, 1, 3, 0]
                     , [0, 1, 4, 1, 0]
                     , [0, 2, 1, 1, 1]
                 ])
