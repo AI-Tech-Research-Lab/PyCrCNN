@@ -1,6 +1,27 @@
-import numpy as np
+class SquareLayer:
+    """
+    A class used to represent a layer which performs a
+    flattening operation.
+    ...
 
-from Pyfhel import PyCtxt
+    Attributes
+    ----------
+
+    HE: Pyfhel
+        Pyfhel object
+
+    Methods
+    -------
+    __init__(self, HE)
+        Constructor of the layer.
+    __call__(self, image)
+        Executes the square of the input matrix.
+    """
+    def __init__(self, HE):
+        self.HE = HE
+
+    def __call__(self, image):
+        square(self.HE, image)
 
 
 def square(HE, image):

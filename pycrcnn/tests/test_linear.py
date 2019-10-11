@@ -77,10 +77,10 @@ class MyTestCase(unittest.TestCase):
             [1, 2, 3, 4]
             , [5, 6, 7, 8]
         ])
-        encrypted_input = cr.encrypt_matrix_2x2(HE, flattened_input)
+        encrypted_input = cr.encrypt_matrix_2d(HE, flattened_input)
 
         encrypted_result = linear_layer(encrypted_input)
-        result = cr.decrypt_matrix_2x2(HE, encrypted_result)
+        result = cr.decrypt_matrix_2d(HE, encrypted_result)
 
         expected_result = np.array([
             [31, 42, 53]
@@ -98,17 +98,17 @@ class MyTestCase(unittest.TestCase):
                 [1, 2, 3, 4]
                ,[5, 6, 7, 8]
         ])
-        encrypted_input = cr.encrypt_matrix_2x2(HE, flattened_input)
+        encrypted_input = cr.encrypt_matrix_2d(HE, flattened_input)
 
         weights = np.array([
             [1, 2, 3, 4]
            ,[2, 3, 4, 5]
            ,[3, 4, 5, 6]
         ])
-        encoded_weights = cr.encode_matrix_2x2(HE, weights)
+        encoded_weights = cr.encode_matrix_2d(HE, weights)
 
         encrypted_result = lin.linear_multiply(HE, encrypted_input, encoded_weights)
-        result = cr.decrypt_matrix_2x2(HE, encrypted_result)
+        result = cr.decrypt_matrix_2d(HE, encrypted_result)
 
         expected_result = np.array([
             [30, 40, 50]

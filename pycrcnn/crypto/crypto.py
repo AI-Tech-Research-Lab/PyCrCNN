@@ -23,7 +23,7 @@ def encode_vector(HE, vector):
     return result
 
 
-def encode_matrix_2x2(HE, matrix):
+def encode_matrix_2d(HE, matrix):
     """Encode a 2D-matrix in a PyPtxt 2D-matrix.
 
     Parameters
@@ -76,8 +76,8 @@ def encode_matrix(HE, matrix):
     return result
 
 
-def encrypt_matrix_2x2(HE, matrix):
-    """Encrypt a 2x2 matrix in a PyCtxt 2x2 matrix.
+def encrypt_matrix_2d(HE, matrix):
+    """Encrypt a 2d matrix in a PyCtxt 2d matrix.
 
     Parameters
     ----------
@@ -129,8 +129,8 @@ def encrypt_matrix(HE, matrix):
     return result
 
 
-def decrypt_matrix_2x2(HE, matrix):
-    """Decrypt a 2x2 matrix in a float 2x2 matrix.
+def decrypt_matrix_2d(HE, matrix):
+    """Decrypt a 2d matrix in a float 2d matrix.
 
     Parameters
     ----------

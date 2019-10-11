@@ -3,6 +3,38 @@ import numpy as np
 from Pyfhel import PyCtxt
 
 
+class AveragePoolLayer:
+    """
+    A class used to represent a layer which performs an average pool operation
+    ...
+
+    Attributes
+    ----------
+    HE : Pyfhel
+        Pyfhel object, used to perform the pool operation
+    kernel_size: int
+        Size of the square kernel
+    stride : int
+        Stride of the pool operaiton
+
+    Methods
+    -------
+    __init__(self, HE, kernel_size, stride)
+        Constructor of the layer.
+    __call__(self, t)
+        Execute che average pooling operation on a batch of images, t, in the form
+            [n_images, n_layers, y, x]
+        using kernel size and strides of the layer.
+    """
+    def __init__(self, HE, kernel_size, stride):
+        self.HE = HE
+        self.kernel_size = kernel_size
+        self.stride = stride
+
+    def __call__(self, image):
+        return avg_pool2d(self.HE, image, self.kernel_size, self.stride)
+
+
 def avg_pool2d(HE, image, kernel_size, stride):
     """Execute the average pooling operation, given a batch of images,
         a kernel dimension and the stride.

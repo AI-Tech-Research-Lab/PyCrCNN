@@ -99,7 +99,7 @@ def convolute(HE, image, filters, x_stride, y_stride):
 
         for n_filter in range(0, n_filters):
 
-            partial_result = c.encode_matrix_2x2(HE, np.zeros((x_o, y_o), dtype=float))
+            partial_result = c.encode_matrix_2d(HE, np.zeros((x_o, y_o), dtype=float))
             for n_layer in range(0, n_layers):
                 partial_result = convolute2d(HE, image[n_image][n_layer]
                                              , filters[n_filter][n_layer]

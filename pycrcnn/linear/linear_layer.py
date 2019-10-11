@@ -33,7 +33,7 @@ class LinearLayer:
 
     def __init__(self, HE, weights, bias=None):
         self.HE = HE
-        self.weights = c.encode_matrix_2x2(HE, weights)
+        self.weights = c.encode_matrix_2d(HE, weights)
         self.bias = bias
         if bias is not None:
             self.bias = c.encode_vector(HE, bias)
