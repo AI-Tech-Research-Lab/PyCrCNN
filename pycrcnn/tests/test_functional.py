@@ -7,7 +7,7 @@ from pycrcnn.functional import average_pool as avg
 from pycrcnn.functional import square_layer as sq
 from pycrcnn.crypto import crypto as cr
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
-from pycrcnn.functional.reshape_layer import ReshapeLayer
+from pycrcnn.functional.flatten_layer import FlattenLayer
 
 
 class AverageLayerTests(unittest.TestCase):
@@ -287,7 +287,7 @@ class ReshapeLayerTests(unittest.TestCase):
             ]
         ])
 
-        reshape_layer = ReshapeLayer(50)
+        reshape_layer = FlattenLayer()
         result = reshape_layer(image)
 
         self.assertEqual(result.shape, (2, 50))

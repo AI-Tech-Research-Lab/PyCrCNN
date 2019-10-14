@@ -1,4 +1,4 @@
-class ReshapeLayer:
+class FlattenLayer:
     """
     A class used to represent a layer which performs a
     flattening operation.
@@ -20,8 +20,7 @@ class ReshapeLayer:
         Reshapes it in the form
             [n_images, length]
     """
-    def __init__(self, length):
-        self.length = length
 
     def __call__(self, image):
-        return image.reshape(-1, self.length)
+        dimension = image.shape
+        return image.reshape(dimension[0], dimension[1]*dimension[2]*dimension[3])

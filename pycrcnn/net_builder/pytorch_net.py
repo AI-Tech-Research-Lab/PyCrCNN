@@ -25,36 +25,15 @@ train_loader = torch.utils.data.DataLoader(
     shuffle=True
 )
 
-
-class Network(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5)
-
-        self.fc1 = nn.Linear(in_features=4*4*64, out_features=512)
-        self.fc2 = nn.Linear(in_features=512, out_features=10)
-
-    def forward(self, t):
-        # (1) input layer
-        t = t
-
-        # (2) hidden conv layer
-        t = self.conv1(t)
-        t = F.avg_pool2d(t, kernel_size=2, stride=2)
-
-        # (3) hidden conv layer
-        t = self.conv2(t)
-        t = F.avg_pool2d(t, kernel_size=2, stride=2)
-
-        # (4) hidden linear layer
-        t = t.reshape(-1, 4*4*64)
-        t = self.fc1(t)
-
-        # (5) hidden linear layer
-        t = self.fc2(t)
-
-        return t
+net = nn.Sequential(
+    nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5),
+    nn.AvgPool2d(kernel_size=2, stride=2),
+    nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5),
+    nn.AvgPool2d(kernel_size=2, stride=2),
+    nn.Flatten(),
+    nn.Linear(in_features=4*4*32, out_features=256),
+    nn.Linear(in_features=256, out_features=10)
+)
 
 # Helper functions
 
@@ -89,7 +68,7 @@ def get_num_correct(preds, labels):
 
 def train_net(network, epochs):
 
-    optimizer = optim.Adam(network.parameters(), lr=0.01)
+    optimizer = optim.Adam(net.parameters(), lr=0.01)
 
     for i in range(0, epochs):
         total_loss = 0
@@ -115,24 +94,20 @@ def train_net(network, epochs):
 
 
 @torch.no_grad()
-def use_net(network, batch):
-    return network(batch)
+def use_net(net, batch):
+    return net(batch)
 
 
-def save_net(network, path="./model.pt"):
-    torch.save(network, path)
+def save_net(path="./model.pt"):
+    torch.save(net.state_dict(), path)
 
 
 def load_net(path="./model.pt"):
-    network = Network()
-    network = torch.load(path)
+    net.load_state_dict(torch.load(path))
+    net.eval()
 
-    network.eval()
-    return network
+    return net
 
 
-def new_net():
-    net = Network()
-    train_net(net, 2)
-    save_net(net)
-
+#train_net(net, 2)
+#save_net()
