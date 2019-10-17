@@ -47,11 +47,7 @@ class ConvolutionalLayer:
     def __call__(self, t):
         result = convolute(self.HE, t, self.weights, self.x_stride, self.y_stride)
         if self.bias is not None:
-            n_images = len(result)
-            n_layers = len(result[0])
-            for i in range(0, n_images):
-                for j in range(0, n_layers):
-                    result[i][j] = result[i][j] + self.bias[j]
+            result = [row + self.bias for row in result]
         return result
 
 

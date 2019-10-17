@@ -1,7 +1,4 @@
-import numpy as np
-
 from pycrcnn.convolutional.convolutional_layer import ConvolutionalLayer
-from pycrcnn.crypto import crypto as cr
 from pycrcnn.functional.average_pool import AveragePoolLayer
 from pycrcnn.functional.flatten_layer import FlattenLayer
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
@@ -32,14 +29,23 @@ def build_from_pytorch(HE, net, rencrypt_position):
 
     # Define builders for every possible layer
     def conv_layer(layer):
+        if layer.bias is None:
+            bias = None
+        else:
+            bias = layer.bias.detach().numpy()
+
         return ConvolutionalLayer(HE, layer.weight.detach().numpy(),
                                   layer.stride[0],
                                   layer.stride[1],
-                                  layer.bias.detach().numpy())
+                                  bias)
 
     def lin_layer(layer):
+        if layer.bias is None:
+            bias = None
+        else:
+            bias = layer.bias.detach().numpy()
         return LinearLayer(HE, layer.weight.detach().numpy(),
-                           layer.bias.detach().numpy())
+                           bias)
 
     def avg_pool_layer(layer):
         return AveragePoolLayer(HE, layer.kernel_size, layer.stride)

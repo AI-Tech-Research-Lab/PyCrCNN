@@ -84,38 +84,9 @@ class MyTestCase(unittest.TestCase):
 
         expected_result = np.array([
             [31, 42, 53]
-           ,[43, 83, 113]
+            ,[71, 98, 125]
         ])
-        self.assertEqual(result.all(), expected_result.all())
-
-    def test_linear_multiply(self):
-        HE = Pyfhel()
-        HE.contextGen(65537)
-        HE.keyGen()
-        HE.relinKeyGen(30, 100)
-
-        flattened_input = np.array([
-                [1, 2, 3, 4]
-               ,[5, 6, 7, 8]
-        ])
-        encrypted_input = cr.encrypt_matrix_2d(HE, flattened_input)
-
-        weights = np.array([
-            [1, 2, 3, 4]
-           ,[2, 3, 4, 5]
-           ,[3, 4, 5, 6]
-        ])
-        encoded_weights = cr.encode_matrix_2d(HE, weights)
-
-        encrypted_result = lin.linear_multiply(HE, encrypted_input, encoded_weights)
-        result = cr.decrypt_matrix_2d(HE, encrypted_result)
-
-        expected_result = np.array([
-            [30, 40, 50]
-           ,[42, 81, 110]
-        ])
-
-        self.assertEqual(result.all(), expected_result.all())
+        self.assertTrue(np.allclose(result, expected_result))
 
 
 if __name__ == '__main__':

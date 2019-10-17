@@ -23,6 +23,27 @@ def encode_vector(HE, vector):
     return result
 
 
+def decode_vector(HE, vector):
+    """Decode a single PyPtxt vector in a float vector.
+
+    Parameters
+    ----------
+    HE : Pyfhel object
+    vector : np.array( dtype=PyPtxt )
+        vector to be decoded
+
+    Returns
+    -------
+    vector
+        np.array( dtype=float ) with decoded values
+    """
+    result = np.empty((len(vector)), dtype=float)
+
+    for i in range(0, len(vector)):
+        result[i] = HE.decodeFrac(vector[i])
+    return result
+
+
 def encode_matrix_2d(HE, matrix):
     """Encode a 2D-matrix in a PyPtxt 2D-matrix.
 
@@ -43,6 +64,29 @@ def encode_matrix_2d(HE, matrix):
     for i in range(0, len(matrix)):
         for k in range(0, len(matrix[i])):
             result[i][k] = HE.encodeFrac(matrix[i][k])
+    return result
+
+
+def decode_matrix_2d(HE, matrix):
+    """Decode a PyPtxt 2D-matrix in a float 2D-matrix.
+
+    Parameters
+    ----------
+    HE : Pyfhel object
+    matrix : 2D-np.array( dtype=PyPtxt )
+        matrix to be decoded
+
+    Returns
+    -------
+    matrix
+        2D-np.array( dtype=float ) with decoded values
+    """
+    n_rows = len(matrix)
+    n_columns = len(matrix[0])
+    result = np.empty((n_rows, n_columns), dtype=float)
+    for i in range(0, len(matrix)):
+        for k in range(0, len(matrix[i])):
+            result[i][k] = HE.decodeFrac(matrix[i][k])
     return result
 
 
@@ -71,6 +115,36 @@ def encode_matrix(HE, matrix):
             for i in range(0, n_rows):
                 for k in range(0, n_columns):
                     result[n_matrix][n_layer][i][k] = HE.encodeFrac(
+                        matrix[n_matrix][n_layer][i][k]
+                    )
+    return result
+
+
+def decode_matrix(HE, matrix):
+    """Decode a PyPtxt 4D-matrix in a float 4D-matrix.
+
+    Parameters
+    ----------
+    HE : Pyfhel object
+    matrix : 4D-np.array( dtype=PyPtxt )
+        matrix to be decoded
+
+    Returns
+    -------
+    matrix
+        4D-np.array( dtype=float ) with decoded values
+    """
+    n_matrixes = len(matrix)
+    n_layers = len(matrix[0])
+    n_rows = len(matrix[0][0])
+    n_columns = len(matrix[0][0][0])
+    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=float)
+
+    for n_matrix in range(0, n_matrixes):
+        for n_layer in range(0, n_layers):
+            for i in range(0, n_rows):
+                for k in range(0, n_columns):
+                    result[n_matrix][n_layer][i][k] = HE.decodeFrac(
                         matrix[n_matrix][n_layer][i][k]
                     )
     return result

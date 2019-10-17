@@ -102,7 +102,7 @@ class MyTestCase(unittest.TestCase):
            ,[2, 3, 4]
         ]]]
         )
-        self.assertEqual(result.all(), (expected_result+3).all())
+        self.assertTrue(np.allclose(result, (expected_result+3)))
 
     def test_convolute(self):
         """ Procedure:
@@ -210,7 +210,7 @@ class MyTestCase(unittest.TestCase):
               [ 8.,  7., 12.],
               [ 7.,  4.,  9.]]]])
 
-        self.assertEqual(result.all(), expected_result.all())
+        self.assertTrue(np.allclose(result, expected_result))
 
     def test_convolute2d(self):
         """ Procedure:

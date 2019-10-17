@@ -1,7 +1,5 @@
 import numpy as np
 
-from Pyfhel import PyCtxt
-
 from ..crypto import crypto as c
 
 
@@ -27,8 +25,10 @@ class LinearLayer:
         Constructor of the layer, bias is set to None if not provided.
     __call__(self, t)
         Execute che linear operation on a flattened input, t, in the form
-            [n_images, in_features]
+            [n_images, in_features], 2D-np.array( dtype=PyCtxt )
         using weights and biases of the layer.
+        returns the result in the form
+            [n_images, out_features], 2D-np.array( dtype=PtCtxt )
     """
 
     def __init__(self, HE, weights, bias=None):
@@ -39,48 +39,8 @@ class LinearLayer:
             self.bias = c.encode_vector(HE, bias)
 
     def __call__(self, t):
-        result = linear_multiply(self.HE, t, self.weights)
+        result = [[np.sum(image * row) for row in self.weights] for image in t]
         if self.bias is not None:
-            n_images = len(result)
-            for i in range(0, n_images):
-                result[i] = result[i] + self.bias
+            result = [row + self.bias for row in result]
         return result
 
-
-def linear_multiply(HE, vector, matrix):
-    """Execute the linear multiply operation, given a batch of flattened input
-    and a weight matrix.
-
-
-    Parameters
-    ----------
-    HE : Pyfhel
-        Pyfhel object
-    vector: 2D-np.array( dtype=PyCtxt )
-        flattened input in the form
-        [n_images, in_features]
-    matrix: 2D-np.array( dtype=PyPtxt )
-        weight to use for multiplication
-
-    Returns
-    -------
-    result : 2D-np.array( dtype=PtCtxt )
-        Encrypted result of the linear multiplication, in the form
-        [n_images, out_features]
-    """
-    n_images = len(vector)
-    out_features = len(matrix)
-    in_features = len(matrix[0])
-
-    result = np.empty( (n_images, out_features), dtype=PyCtxt)
-    for n_image in range(0, n_images):
-        for i in range(0, out_features):
-            sum = HE.encryptFrac(0)
-            for j in range(0, in_features):
-                partial_mul = vector[n_image][j] * matrix[i][j]
-                HE.relinearize(partial_mul)
-                sum = sum + partial_mul
-            result[n_image][i] = sum
-
-
-    return result

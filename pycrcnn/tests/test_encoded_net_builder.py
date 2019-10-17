@@ -3,24 +3,11 @@ import torch.nn as nn
 from Pyfhel.Pyfhel import Pyfhel
 import numpy as np
 
+from pycrcnn.crypto.crypto import decode_matrix, decode_vector, decode_matrix_2d
+from pycrcnn.functional.flatten_layer import FlattenLayer
+from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 
-
-def decode_matrix(HE, matrix):
-    n_matrixes = len(matrix)
-    n_layers = len(matrix[0])
-    n_rows = len(matrix[0][0])
-    n_columns = len(matrix[0][0][0])
-    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=float)
-
-    for n_matrix in range(0, n_matrixes):
-        for n_layer in range(0, n_layers):
-            for i in range(0, n_rows):
-                for k in range(0, n_columns):
-                    result[n_matrix][n_layer][i][k] = HE.decodeFrac(
-                        matrix[n_matrix][n_layer][i][k]
-                    )
-    return result
 
 class NetBuilderTester(unittest.TestCase):
 
@@ -31,6 +18,8 @@ class NetBuilderTester(unittest.TestCase):
             nn.AvgPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
             nn.Linear(in_features=4 * 4 * 8, out_features=64),
+            nn.Conv2d(in_channels=1, out_channels=1, bias=False, kernel_size=5),
+            nn.Conv2d(in_channels=1, out_channels=1, bias=False, kernel_size=5, stride=2)
         )
 
         HE = Pyfhel()
@@ -39,5 +28,35 @@ class NetBuilderTester(unittest.TestCase):
 
         encoded_net = build_from_pytorch(HE, plain_net, 1)
 
-        self.assertEqual(plain_net[0].weight.detach().numpy().all(),
-                         decode_matrix(HE, encoded_net[0].weights).all())
+        self.assertTrue(np.allclose(plain_net[0].weight.detach().numpy(),
+                        decode_matrix(HE, encoded_net[0].weights)))
+
+        self.assertTrue(np.allclose(plain_net[0].bias.detach().numpy(),
+                        decode_vector(HE, encoded_net[0].bias)))
+
+        self.assertEqual(plain_net[0].stride[0],
+                         encoded_net[0].x_stride)
+        self.assertEqual(plain_net[0].stride[1],
+                         encoded_net[0].y_stride)
+
+        self.assertEqual(plain_net[1].kernel_size, encoded_net[1].kernel_size)
+        self.assertEqual(plain_net[1].stride, encoded_net[1].stride)
+
+        self.assertEqual(type(encoded_net[2]), RencryptionLayer)
+        self.assertEqual(type(encoded_net[3]), FlattenLayer)
+
+        self.assertTrue(np.allclose(plain_net[3].weight.detach().numpy(),
+                        decode_matrix_2d(HE, encoded_net[4].weights)))
+        self.assertTrue(np.allclose(plain_net[3].bias.detach().numpy(),
+                        decode_vector(HE, encoded_net[4].bias)))
+
+        self.assertEqual(encoded_net[5].bias, None)
+
+        self.assertEqual(plain_net[5].stride[0],
+                         encoded_net[6].x_stride)
+        self.assertEqual(plain_net[5].stride[1],
+                         encoded_net[6].y_stride)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -24,7 +24,7 @@ class AverageLayerTests(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-        HE.relinKeyGen(30, 100)
+        HE.relinKeyGen(20, 100)
         image = np.array([
             [
                 [
@@ -65,29 +65,28 @@ class AverageLayerTests(unittest.TestCase):
 
         result = cr.decrypt_matrix(HE, encrypted_result)
 
-        expected_result = np.array([[
-         [[0.7500,  0.5000,  0.2500,  0.2500],
-          [0.2500,  0.7500,  1.0000,  0.7500],
-          [0.5000,  0.0000,  1.0000,  0.7500],
-          [0.2500,  0.2500,  0.7500,  0.2500]],
+        expected_result = np.array([[[[ 0.7500,  0.5000,  0.2500,  0.2500],
+          [ 0.2500,  0.7500,  1.0000,  0.7500],
+          [-0.5000,  0.0000,  1.0000,  0.7500],
+          [-0.2500,  0.2500,  0.7500,  0.2500]],
 
-         [[1.0000,  1.0000,  1.0000,  0.2500],
-          [0.7500,  0.5000,  0.2500,  0.2500],
-          [0.2500,  0.2500,  0.2500,  0.5000],
-          [0.5000,  0.7500,  0.5000,  0.2500]]],
+         [[ 1.0000,  1.0000,  1.0000,  0.2500],
+          [ 0.7500,  0.5000,  0.2500,  0.2500],
+          [ 0.2500,  0.2500,  0.2500,  0.5000],
+          [ 0.5000,  0.7500,  0.5000,  0.2500]]],
 
 
-        [[[0.7500,  1.2500,  1.0000,  0.5000],
-          [0.2500,  1.0000,  1.2500,  1.0000],
-          [0.2500,  0.7500,  1.7500,  1.2500],
-          [0.2500,  0.7500,  1.5000,  0.7500]],
+        [[[ 0.7500,  1.2500,  1.0000,  0.5000],
+          [ 0.2500,  1.0000,  1.2500,  1.0000],
+          [ 0.2500,  0.7500,  1.7500,  1.2500],
+          [ 0.2500,  0.7500,  1.5000,  0.7500]],
 
-         [[0.5000,  1.0000,  1.0000,  0.7500],
-          [0.5000,  0.5000,  0.7500,  1.2500],
+         [[ 0.5000,  1.0000,  1.0000,  0.7500],
+          [ 0.5000,  0.5000,  0.7500,  1.2500],
           [-0.5000, -0.5000,  0.7500,  0.7500],
           [-0.7500,  0.0000,  1.0000,  0.2500]]]])
 
-        self.assertEqual(result.all(), expected_result.all())
+        self.assertTrue(np.allclose(result, expected_result))
 
     def test__avg(self):
         """ Procedure:
@@ -100,7 +99,7 @@ class AverageLayerTests(unittest.TestCase):
                     4. Verify the result is the expected
         """
         HE = Pyfhel()
-        HE.contextGen(65537)
+        HE.contextGen(65532)
         HE.keyGen()
         HE.relinKeyGen(20, 30)
         # Shape of image is [1, 1, 5, 5]. Needed to use encrypt_matrix.
@@ -118,11 +117,11 @@ class AverageLayerTests(unittest.TestCase):
 
         result = cr.decrypt_matrix_2d(HE, encrypted_result)
 
-        expected_result = np.array([[[
-            [0.1111, 0.3333],
-            [0.1111, 0.6667]]]])
+        expected_result = np.array(
+            [[0.1111, 0.3333],
+            [0.1111, 0.6667]])
 
-        self.assertEqual(result.all(), expected_result.all())
+        self.assertTrue(np.allclose(result, expected_result, 0.001))
 
 
 class SquareLayerTests(unittest.TestCase):
@@ -205,7 +204,7 @@ class SquareLayerTests(unittest.TestCase):
 
         result = cr.decrypt_matrix(HE, encrypted_result)
 
-        self.assertEqual(expected_result.all(), result.all())
+        self.assertTrue(np.allclose(expected_result, result))
 
     def test_square_layer2D(self):
         HE = Pyfhel()
@@ -230,7 +229,7 @@ class SquareLayerTests(unittest.TestCase):
 
         result = cr.decrypt_matrix_2d(HE, encrypted_result)
 
-        self.assertEqual(expected_result.all(), result.all())
+        self.assertTrue(np.allclose(expected_result, result))
 
 
 class RencryptionLayerTests(unittest.TestCase):
@@ -248,7 +247,7 @@ class RencryptionLayerTests(unittest.TestCase):
         enc_result = rencryption_layer(enc_image)
 
         result = cr.decrypt_matrix_2d(HE, enc_result)
-        self.assertEqual(image.all(), result.all())
+        self.assertTrue(np.allclose(image, result))
 
 
 class ReshapeLayerTests(unittest.TestCase):
