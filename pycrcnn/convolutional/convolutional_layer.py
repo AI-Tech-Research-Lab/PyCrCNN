@@ -42,7 +42,7 @@ class ConvolutionalLayer:
         self.y_stride = y_stride
         self.bias = bias
         if bias is not None:
-            self.bias = c.encode_vector(HE, bias)
+            self.bias = c.encode_matrix(HE, bias)
 
     def __call__(self, t):
         result = convolute(self.HE, t, self.weights, self.x_stride, self.y_stride)
@@ -94,7 +94,7 @@ def convolute(HE, image, filters, x_stride, y_stride):
 
         for n_filter in range(0, n_filters):
 
-            partial_result = c.encode_matrix_2d(HE, np.zeros((x_o, y_o), dtype=float))
+            partial_result = c.encode_matrix(HE, np.zeros((x_o, y_o), dtype=float))
             for n_layer in range(0, n_layers):
                 partial_result = convolute2d(HE, image[n_image][n_layer]
                                              , filters[n_filter][n_layer]

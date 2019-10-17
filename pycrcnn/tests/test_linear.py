@@ -77,10 +77,10 @@ class MyTestCase(unittest.TestCase):
             [1, 2, 3, 4]
             , [5, 6, 7, 8]
         ])
-        encrypted_input = cr.encrypt_matrix_2d(HE, flattened_input)
+        encrypted_input = cr.encrypt_matrix(HE, flattened_input)
 
         encrypted_result = linear_layer(encrypted_input)
-        result = cr.decrypt_matrix_2d(HE, encrypted_result)
+        result = cr.decrypt_matrix(HE, encrypted_result)
 
         expected_result = np.array([
             [31, 42, 53]

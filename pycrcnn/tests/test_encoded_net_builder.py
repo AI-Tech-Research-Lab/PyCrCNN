@@ -3,7 +3,7 @@ import torch.nn as nn
 from Pyfhel.Pyfhel import Pyfhel
 import numpy as np
 
-from pycrcnn.crypto.crypto import decode_matrix, decode_vector, decode_matrix_2d
+from pycrcnn.crypto.crypto import decode_matrix, decode_matrix, decode_matrix
 from pycrcnn.functional.flatten_layer import FlattenLayer
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
@@ -32,7 +32,7 @@ class NetBuilderTester(unittest.TestCase):
                         decode_matrix(HE, encoded_net[0].weights)))
 
         self.assertTrue(np.allclose(plain_net[0].bias.detach().numpy(),
-                        decode_vector(HE, encoded_net[0].bias)))
+                                    decode_matrix(HE, encoded_net[0].bias)))
 
         self.assertEqual(plain_net[0].stride[0],
                          encoded_net[0].x_stride)
@@ -46,9 +46,9 @@ class NetBuilderTester(unittest.TestCase):
         self.assertEqual(type(encoded_net[3]), FlattenLayer)
 
         self.assertTrue(np.allclose(plain_net[3].weight.detach().numpy(),
-                        decode_matrix_2d(HE, encoded_net[4].weights)))
+                                    decode_matrix(HE, encoded_net[4].weights)))
         self.assertTrue(np.allclose(plain_net[3].bias.detach().numpy(),
-                        decode_vector(HE, encoded_net[4].bias)))
+                                    decode_matrix(HE, encoded_net[4].bias)))
 
         self.assertEqual(encoded_net[5].bias, None)
 

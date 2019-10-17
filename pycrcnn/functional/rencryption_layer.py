@@ -28,5 +28,5 @@ class RencryptionLayer:
         self.HE = HE
 
     def __call__(self, image):
-        plain = cr.decrypt_matrix_2d(self.HE, image)
-        return cr.encrypt_matrix_2d(self.HE, plain)
+        plain = cr.decrypt_matrix(self.HE, image)
+        return cr.encrypt_matrix(self.HE, plain)

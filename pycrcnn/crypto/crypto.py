@@ -1,256 +1,82 @@
 import numpy as np
-from Pyfhel import PyCtxt, PyPtxt
-
-
-def encode_vector(HE, vector):
-    """Encode a single vector in a PyPtxt vector.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    vector : np.array( dtype=float )
-        vector to be encoded
-
-    Returns
-    -------
-    vector
-        np.array( dtype=PyPtxt ) with encoded values
-    """
-    result = np.empty((len(vector)), dtype=PyPtxt)
-
-    for i in range(0, len(vector)):
-        result[i] = HE.encodeFrac(vector[i])
-    return result
-
-
-def decode_vector(HE, vector):
-    """Decode a single PyPtxt vector in a float vector.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    vector : np.array( dtype=PyPtxt )
-        vector to be decoded
-
-    Returns
-    -------
-    vector
-        np.array( dtype=float ) with decoded values
-    """
-    result = np.empty((len(vector)), dtype=float)
-
-    for i in range(0, len(vector)):
-        result[i] = HE.decodeFrac(vector[i])
-    return result
-
-
-def encode_matrix_2d(HE, matrix):
-    """Encode a 2D-matrix in a PyPtxt 2D-matrix.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    matrix : 2D-np.array( dtype=float )
-        matrix to be encoded
-
-    Returns
-    -------
-    matrix
-        2D-np.array( dtype=PyPtxt ) with encoded values
-    """
-    n_rows = len(matrix)
-    n_columns = len(matrix[0])
-    result = np.empty((n_rows, n_columns), dtype=PyPtxt)
-    for i in range(0, len(matrix)):
-        for k in range(0, len(matrix[i])):
-            result[i][k] = HE.encodeFrac(matrix[i][k])
-    return result
-
-
-def decode_matrix_2d(HE, matrix):
-    """Decode a PyPtxt 2D-matrix in a float 2D-matrix.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    matrix : 2D-np.array( dtype=PyPtxt )
-        matrix to be decoded
-
-    Returns
-    -------
-    matrix
-        2D-np.array( dtype=float ) with decoded values
-    """
-    n_rows = len(matrix)
-    n_columns = len(matrix[0])
-    result = np.empty((n_rows, n_columns), dtype=float)
-    for i in range(0, len(matrix)):
-        for k in range(0, len(matrix[i])):
-            result[i][k] = HE.decodeFrac(matrix[i][k])
-    return result
 
 
 def encode_matrix(HE, matrix):
-    """Encode a 4D-matrix in a PyPtxt 4D-matrix.
+    """Encode a float nD-matrix in a PyPtxt nD-matrix.
 
     Parameters
     ----------
     HE : Pyfhel object
-    matrix : 4D-np.array( dtype=float )
+    matrix : nD-np.array( dtype=float )
         matrix to be encoded
 
     Returns
     -------
     matrix
-        4D-np.array( dtype=PyPtxt ) with encoded values
+        nD-np.array( dtype=PyPtxt ) with encoded values
     """
-    n_matrixes = len(matrix)
-    n_layers = len(matrix[0])
-    n_rows = len(matrix[0][0])
-    n_columns = len(matrix[0][0][0])
-    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=PyPtxt)
 
-    for n_matrix in range(0, n_matrixes):
-        for n_layer in range(0, n_layers):
-            for i in range(0, n_rows):
-                for k in range(0, n_columns):
-                    result[n_matrix][n_layer][i][k] = HE.encodeFrac(
-                        matrix[n_matrix][n_layer][i][k]
-                    )
-    return result
+    try:
+        return np.array(list(map(HE.encodeFrac, matrix)))
+    except TypeError:
+        return np.array([encode_matrix(HE, m) for m in matrix])
 
 
 def decode_matrix(HE, matrix):
-    """Decode a PyPtxt 4D-matrix in a float 4D-matrix.
+    """Decode a PyPtxt nD-matrix in a float nD-matrix.
 
     Parameters
     ----------
     HE : Pyfhel object
-    matrix : 4D-np.array( dtype=PyPtxt )
+    matrix : nD-np.array( dtype=PyPtxt )
         matrix to be decoded
 
     Returns
     -------
     matrix
-        4D-np.array( dtype=float ) with decoded values
+        nD-np.array( dtype=float ) with float values
     """
-    n_matrixes = len(matrix)
-    n_layers = len(matrix[0])
-    n_rows = len(matrix[0][0])
-    n_columns = len(matrix[0][0][0])
-    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=float)
-
-    for n_matrix in range(0, n_matrixes):
-        for n_layer in range(0, n_layers):
-            for i in range(0, n_rows):
-                for k in range(0, n_columns):
-                    result[n_matrix][n_layer][i][k] = HE.decodeFrac(
-                        matrix[n_matrix][n_layer][i][k]
-                    )
-    return result
-
-
-def encrypt_matrix_2d(HE, matrix):
-    """Encrypt a 2d matrix in a PyCtxt 2d matrix.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    matrix : 2x2-np.array( dtype=float )
-        matrix to be encrypted
-
-    Returns
-    -------
-    matrix
-        2x2-np.array( dtype=PyCtxt ) with encrypted values
-    """
-    n_rows = len(matrix)
-    n_columns = len(matrix[0])
-    result = np.empty((n_rows, n_columns), dtype=PyCtxt)
-    for i in range(0, len(matrix)):
-        for k in range(0, len(matrix[i])):
-            result[i][k] = HE.encryptFrac(matrix[i][k])
-    return result
+    try:
+        return np.array(list(map(HE.decodeFrac, matrix)))
+    except TypeError:
+        return np.array([decode_matrix(HE, m) for m in matrix])
 
 
 def encrypt_matrix(HE, matrix):
-    """Encrypt a 4D-matrix in a PyCtxt 4D-matrix.
+    """Encrypt a float nD-matrix in a PyCtxt nD-matrix.
 
     Parameters
     ----------
     HE : Pyfhel object
-    matrix : 4D-np.array( dtype=float )
+    matrix : nD-np.array( dtype=float )
         matrix to be encrypted
 
     Returns
     -------
     matrix
-        4D-np.array( dtype=PyCtxt ) with encrypted values
+        nD-np.array( dtype=PyCtxt ) with encrypted values
     """
-    n_matrixes = len(matrix)
-    n_layers = len(matrix[0])
-    n_rows = len(matrix[0][0])
-    n_columns = len(matrix[0][0][0])
-    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=PyCtxt)
-
-    for n_matrix in range(0, n_matrixes):
-        for n_layer in range(0, n_layers):
-            for i in range(0, n_rows):
-                for k in range(0, n_columns):
-                    result[n_matrix][n_layer][i][k] = HE.encryptFrac(
-                        matrix[n_matrix][n_layer][i][k]
-                    )
-    return result
-
-
-def decrypt_matrix_2d(HE, matrix):
-    """Decrypt a 2d matrix in a float 2d matrix.
-
-    Parameters
-    ----------
-    HE : Pyfhel object
-    matrix : 2x2-np.array( dtype=PyCtxt )
-        matrix to be decrypted
-
-    Returns
-    -------
-    matrix
-        2x2-np.array( dtype=float ) with decrypted values
-    """
-    n_rows = len(matrix)
-    n_columns = len(matrix[0])
-    result = np.empty((n_rows, n_columns), dtype=float)
-    for i in range(0, len(matrix)):
-        for k in range(0, len(matrix[i])):
-            result[i][k] = HE.decryptFrac(matrix[i][k])
-    return result
+    try:
+        return np.array(list(map(HE.encryptFrac, matrix)))
+    except TypeError:
+        return np.array([encrypt_matrix(HE, m) for m in matrix])
 
 
 def decrypt_matrix(HE, matrix):
-    """Decrypt a 4D matrix in a float 4D matrix.
+    """Decrypt a PyCtxt nD matrix in a float nD matrix.
 
     Parameters
     ----------
     HE : Pyfhel object
-    matrix : 4D-np.array( dtype=PyCtxt )
+    matrix : nD-np.array( dtype=PyCtxt )
         matrix to be decrypted
 
     Returns
     -------
     matrix
-        4D-np.array( dtype=float ) with plain values
+        nD-np.array( dtype=float ) with plain values
     """
-    n_matrixes = len(matrix)
-    n_layers = len(matrix[0])
-    n_rows = len(matrix[0][0])
-    n_columns = len(matrix[0][0][0])
-    result = np.empty((n_matrixes, n_layers, n_rows, n_columns), dtype=float)
-
-    for n_matrix in range(0, n_matrixes):
-        for n_layer in range(0, n_layers):
-            for i in range(0, n_rows):
-                for k in range(0, n_columns):
-                    result[n_matrix][n_layer][i][k] = HE.decryptFrac(
-                        matrix[n_matrix][n_layer][i][k]
-                    )
-    return result
+    try:
+        return np.array(list(map(HE.decryptFrac, matrix)))
+    except TypeError:
+        return np.array([decrypt_matrix(HE, m) for m in matrix])

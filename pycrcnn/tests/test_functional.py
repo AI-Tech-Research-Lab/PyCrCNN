@@ -116,7 +116,7 @@ class AverageLayerTests(unittest.TestCase):
 
         encrypted_result = avg._avg(HE, encrypted_image[0][0], 3, 2)
 
-        result = cr.decrypt_matrix_2d(HE, encrypted_result)
+        result = cr.decrypt_matrix(HE, encrypted_result)
 
         expected_result = np.array(
             [[0.1111, 0.3333],
@@ -225,10 +225,10 @@ class SquareLayerTests(unittest.TestCase):
                     , [0, 4, 1, 1, 1]
                 ])
 
-        encrypted_image = cr.encrypt_matrix_2d(HE, image)
+        encrypted_image = cr.encrypt_matrix(HE, image)
         encrypted_result = sq.square2d(HE, encrypted_image)
 
-        result = cr.decrypt_matrix_2d(HE, encrypted_result)
+        result = cr.decrypt_matrix(HE, encrypted_result)
 
         self.assertTrue(np.allclose(expected_result, result))
 
@@ -242,12 +242,12 @@ class RencryptionLayerTests(unittest.TestCase):
                       [1, 1, -1, 0, 0],
                       [1, 0, 1, 1, 0]])
 
-        enc_image = cr.encrypt_matrix_2d(HE, image)
+        enc_image = cr.encrypt_matrix(HE, image)
         rencryption_layer = RencryptionLayer(HE)
 
         enc_result = rencryption_layer(enc_image)
 
-        result = cr.decrypt_matrix_2d(HE, enc_result)
+        result = cr.decrypt_matrix(HE, enc_result)
         self.assertTrue(np.allclose(image, result))
 
 

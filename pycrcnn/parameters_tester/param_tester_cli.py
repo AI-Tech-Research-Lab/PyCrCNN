@@ -43,7 +43,7 @@ def get_max_error(HE, p_matrix, c_matrix):
     try:
         dec_matrix = cr.decrypt_matrix(HE, c_matrix)
     except TypeError:
-        dec_matrix = cr.decrypt_matrix_2d(HE, c_matrix)
+        dec_matrix = cr.decrypt_matrix(HE, c_matrix)
 
     max_error = np.max(abs(p_matrix - dec_matrix))
     position = np.unravel_index(np.argmax(abs(p_matrix - dec_matrix)), p_matrix.shape)
@@ -120,7 +120,7 @@ def ask_encryption_parameters():
 
 
 def test_net(HE, net, encoded_layers, images, verbose):
-    enc_images = cr.encrypt_matrix(HE, images)
+    enc_images = cr.encrypt_matrix(HE, images.detach().numpy())
     net_iterator = net.children()
 
     if verbose:
@@ -143,9 +143,9 @@ def test_net(HE, net, encoded_layers, images, verbose):
     if verbose:
         print("\n------------ FINAL RESULTS --------------------------")
         print(images)
-        print(cr.decrypt_matrix_2d(HE, enc_images))
+        print(cr.decrypt_matrix(HE, enc_images))
 
-    dec_matrix = cr.decrypt_matrix_2d(HE, enc_images)
+    dec_matrix = cr.decrypt_matrix(HE, enc_images)
     final_error = np.max(abs(images.detach().numpy() - dec_matrix))
     return final_error
 
