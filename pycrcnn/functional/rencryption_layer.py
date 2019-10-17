@@ -4,7 +4,7 @@ from ..crypto import crypto as cr
 class RencryptionLayer:
     """
     A class used to represent a layer which decrypts and then
-    re-encrypts a 2D matrix.
+    re-encrypts a nD matrix.
     While this is not a layer you would see in a CNN, this
     operation has been put in a layer to maintain coherence.
     ...
@@ -20,9 +20,7 @@ class RencryptionLayer:
         Constructor of the layer.
 
     __call__(self, t)
-        Re-encrypts a 2D matrix in the form
-            [y, x]
-        using the keys given by the HE object.
+        Re-encrypts a nD matrix using the keys given by the HE object.
     """
     def __init__(self, HE):
         self.HE = HE

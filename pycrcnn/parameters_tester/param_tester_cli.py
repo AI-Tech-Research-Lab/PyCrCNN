@@ -24,15 +24,10 @@ def get_max_error(HE, p_matrix, c_matrix):
     HE: Pyfhel
         Pyfhel object, needed to decrypt the cipher matrix
     p_matrix: np.array( dtype=float )
-        Numpy array of plain values, can be either in the form
-            [n_images, n_layers, y, x]
-        of
-            [n_images, value]
+        Numpy array of plain values
+
     c_matrix: np.array( dtype=PyCtxt )
-        Numpy array of encrypted values, can be either in the form
-            [n_images, n_layers, y, x]
-        of
-            [n_images, value]
+        Numpy array of encrypted values
 
     Returns
     -------
@@ -40,10 +35,7 @@ def get_max_error(HE, p_matrix, c_matrix):
     position: np.array(dtype = int)
         Position in the matrix in which the max error is found
     """
-    try:
-        dec_matrix = cr.decrypt_matrix(HE, c_matrix)
-    except TypeError:
-        dec_matrix = cr.decrypt_matrix(HE, c_matrix)
+    dec_matrix = cr.decrypt_matrix(HE, c_matrix)
 
     max_error = np.max(abs(p_matrix - dec_matrix))
     position = np.unravel_index(np.argmax(abs(p_matrix - dec_matrix)), p_matrix.shape)
@@ -57,40 +49,26 @@ def get_min_noise(HE, matrix):
     Parameters
     ----------
     HE: Pyfhel
-        Pyfhel obcjet
+        Pyfhel object
     matrix: np.array( dtype=PyCtxt )
         Encrypted matrix, either in the form
-            [n_image, n_layer, y, x]
-        of
-            [n_images, values]
 
     Returns
     -------
-    min_noise
+    min_noise: int
     """
-    min_noise = 10000000
-    try:
-        for i in range(0, len(matrix)):
-            for j in range(0, len(matrix[0])):
-                for z in range(0, len(matrix[0][0])):
-                    for k in range(0, len(matrix[0][0][0])):
-                        if HE.noiseLevel(matrix[i][j][z][k]) < min_noise:
-                            min_noise = HE.noiseLevel(matrix[i][j][z][k])
-                        if HE.noiseLevel(matrix[i][j][z][k]) < 1:
-                            return 0
-    except TypeError:
-        for i in range(0, len(matrix)):
-            for j in range(0, len(matrix[0])):
-                if HE.noiseLevel(matrix[i][j]) < min_noise:
-                    min_noise = HE.noiseLevel(matrix[i][j])
-                if HE.noiseLevel(matrix[i][j]) < 1:
-                    return 0
-    return min_noise
+
+    def local(loc_matrix):
+        try:
+            return np.array(list(map(HE.noiseLevel, loc_matrix)))
+        except TypeError:
+            return np.array([local(m) for m in loc_matrix])
+
+    return np.min(local(matrix))
 
 
 def ask_encryption_parameters():
-    """Asks for encryption parameters and returns an ordered list
-    of them
+    """Asks for encryption parameters and returns an ordered list of them
 
     Returns
     -------
@@ -123,6 +101,15 @@ def test_net(HE, net, encoded_layers, images, verbose):
     enc_images = cr.encrypt_matrix(HE, images.detach().numpy())
     net_iterator = net.children()
 
+    def print_stats():
+        max_error_value, max_error_position = get_max_error(HE, images.detach().numpy(), enc_images)
+        print("\n------------ INTERMEDIATE STATS ------------------------")
+        print("Max error = ", max_error_value, " at ",  max_error_position)
+        print("Plain value = ", images[max_error_position].detach().numpy(), " , cipher value = "
+              , HE.decryptFrac(enc_images[max_error_position]))
+        print("Avg value= ", np.average(images.detach().numpy()))
+        print("Min noise= ", get_min_noise(HE, enc_images))
+
     if verbose:
         print("Min noise initial= ", get_min_noise(HE, enc_images))
 
@@ -132,21 +119,15 @@ def test_net(HE, net, encoded_layers, images, verbose):
             images = next(net_iterator)(images)
 
         if verbose and not (type(layer) == FlattenLayer) and not (type(layer) == RencryptionLayer):
-            print("\n------------ INTERMEDIATE STATS ------------------------")
-            max_error_value, max_error_position = get_max_error(HE, images.detach().numpy(), enc_images)
-            print("Max error = " + str(max_error_value) + " at " + str(max_error_position))
-            print("Plain value = ", images[max_error_position].detach().numpy(), " , cipher value = "
-                  , HE.decryptFrac(enc_images[max_error_position]))
-            print("Avg value= ", np.average(images.detach().numpy()))
-            print("Min noise= ", get_min_noise(HE, enc_images))
-
-    if verbose:
-        print("\n------------ FINAL RESULTS --------------------------")
-        print(images)
-        print(cr.decrypt_matrix(HE, enc_images))
+            print_stats()
 
     dec_matrix = cr.decrypt_matrix(HE, enc_images)
     final_error = np.max(abs(images.detach().numpy() - dec_matrix))
+    if verbose:
+        print("\n------------ FINAL RESULTS --------------------------")
+        print(images)
+        print(dec_matrix)
+
     return final_error
 
 
@@ -176,7 +157,7 @@ def param_test():
     max_error_results = []
 
     debug = str(input("Debug? y/N: "))
-    rencrypt_position = int(input("Where to put rencryption? (default=no rencryption): ") or -1)
+    rencrypt_positions = [int(x) for x in input("Where to put rencryption? (default=no rencryption): ").split()]
 
     print("-----------------------")
 
@@ -194,7 +175,7 @@ def param_test():
                       base=encryption_parameters[i][3])
         HE.keyGen()
         HE.relinKeyGen(20, 5)
-        encoded_net = build_from_pytorch(HE, plain_net, rencrypt_position)
+        encoded_net = build_from_pytorch(HE, plain_net, rencrypt_positions)
         max_error_results.append(test_net(HE, plain_net, encoded_net, images, debug))
 
     print("-----------------------")

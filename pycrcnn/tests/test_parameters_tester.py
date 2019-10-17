@@ -33,16 +33,16 @@ class ParametersTesterCase(unittest.TestCase):
         HE = Pyfhel()
         HE.contextGen(65537)
         HE.keyGen()
-        plain_image = np.array([
+        plain_image = np.array([[
             [1, 2, 3],
             [1, 3, 4],
             [1, 3, 4]
-        ])
+        ]])
 
         cipher_image = encrypt_matrix(HE, plain_image)
-        cipher_image[1][1] = cipher_image[1][1] * HE.encryptFrac(2)
+        cipher_image[0][1][1] = cipher_image[0][1][1] * HE.encryptFrac(2)
 
-        self.assertEqual(get_min_noise(HE, cipher_image), HE.noiseLevel(cipher_image[1][1]))
+        self.assertEqual(get_min_noise(HE, cipher_image), HE.noiseLevel(cipher_image[0][1][1]))
 
 
 if __name__ == '__main__':

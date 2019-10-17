@@ -5,7 +5,7 @@ from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.linear.linear_layer import LinearLayer
 
 
-def build_from_pytorch(HE, net, rencrypt_position):
+def build_from_pytorch(HE, net, rencrypt_positions):
     """Given a PyTorch sequential net in a .pt/.pth file, returns
     an ordered list of encoded layers on which is possible
     to apply an encrypted computation.
@@ -60,11 +60,6 @@ def build_from_pytorch(HE, net, rencrypt_position):
                "AvgP": avg_pool_layer
                }
 
-    encoded_layers = []
-
-    for index in range(0, len(net)):
-        encoded_layers.append(options[str(net[index])[0:4]](net[index]))
-        if rencrypt_position == index:
-            encoded_layers.append(RencryptionLayer(HE))
-
+    encoded_layers = [options[str(layer)[0:4]](layer) for layer in net]
+    [encoded_layers.insert(i, RencryptionLayer(HE)) for i in rencrypt_positions]
     return encoded_layers

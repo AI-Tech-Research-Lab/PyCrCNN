@@ -226,7 +226,7 @@ class SquareLayerTests(unittest.TestCase):
                 ])
 
         encrypted_image = cr.encrypt_matrix(HE, image)
-        encrypted_result = sq.square2d(HE, encrypted_image)
+        encrypted_result = sq.square(HE, encrypted_image)
 
         result = cr.decrypt_matrix(HE, encrypted_result)
 
