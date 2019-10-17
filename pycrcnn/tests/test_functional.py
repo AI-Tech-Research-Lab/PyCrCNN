@@ -6,6 +6,7 @@ from Pyfhel import Pyfhel
 from pycrcnn.functional import average_pool as avg
 from pycrcnn.functional import square_layer as sq
 from pycrcnn.crypto import crypto as cr
+from pycrcnn.functional.average_pool import AveragePoolLayer
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.functional.flatten_layer import FlattenLayer
 
@@ -61,9 +62,9 @@ class AverageLayerTests(unittest.TestCase):
 
         encrypted_image = cr.encrypt_matrix(HE, image)
 
-        encrypted_result = avg.avg_pool2d(HE, encrypted_image, 2, 1)
+        avg_layer = AveragePoolLayer(HE, 2, 1)
 
-        result = cr.decrypt_matrix(HE, encrypted_result)
+        result = cr.decrypt_matrix(HE, avg_layer(encrypted_image))
 
         expected_result = np.array([[[[ 0.7500,  0.5000,  0.2500,  0.2500],
           [ 0.2500,  0.7500,  1.0000,  0.7500],

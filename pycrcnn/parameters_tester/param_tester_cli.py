@@ -209,3 +209,7 @@ def param_test():
         print(max_error_results[i])
 
     print("-----------------------")
+
+
+if __name__ == '__main__':
+    param_test()

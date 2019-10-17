@@ -47,8 +47,7 @@ class ConvolutionalLayer:
     def __call__(self, t):
         result = convolute(self.HE, t, self.weights, self.x_stride, self.y_stride)
         if self.bias is not None:
-            result = [row + self.bias for row in result]
-        return result
+            return np.array([[layer + bias for layer, bias in zip(image, self.bias)] for image in result])
 
 
 def convolute(HE, image, filters, x_stride, y_stride):

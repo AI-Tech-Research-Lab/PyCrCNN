@@ -76,9 +76,16 @@ class MyTestCase(unittest.TestCase):
                         , [0, 1, 0]
                         , [1, 0, 1]
                     ]
+                ],
+                [
+                    [
+                        [1, 0, 1]
+                        , [0, 1, 0]
+                        , [1, 0, 1]
+                    ]
                 ]
             ])
-        bias = np.array([3])
+        bias = np.array([3, 4])
 
         conv_layer = conv.ConvolutionalLayer(HE, new_weights
                                              , 1, 1, bias)
@@ -89,20 +96,39 @@ class MyTestCase(unittest.TestCase):
             , [0, 0, 1, 1, 1]
             , [0, 0, 1, 1, 0]
             , [0, 1, 1, 0, 0]
-        ]]])
+            ]],
+            [[
+                [1, 2, 1, 0, 0]
+                , [0, 1, 1, 1, 0]
+                , [0, 3, 1, 1, 1]
+                , [0, 0, 1, 1, 0]
+                , [0, 1, 1, 0, 4]
+            ]]
+        ])
 
         encrypted_image = cr.encrypt_matrix(HE, image)
 
         encrypted_result = conv_layer(encrypted_image)
         result = cr.decrypt_matrix(HE, encrypted_result)
 
-        expected_result = np.array([[[
-            [4, 3, 4]
-           ,[2, 4, 3]
-           ,[2, 3, 4]
-        ]]]
+        expected_result = np.array([
+        [[[ 7.,  6.,  7.],
+          [ 5.,  7.,  6.],
+          [ 5.,  6.,  7.]],
+
+         [[ 8.,  7.,  8.],
+          [ 6.,  8.,  7.],
+          [ 6.,  7.,  8.]]],
+
+        [[[ 7., 10.,  7.],
+          [ 8.,  7.,  6.],
+          [ 5.,  9., 11.]],
+
+         [[ 8., 11.,  8.],
+          [ 9.,  8.,  7.],
+          [ 6., 10., 12.]]]]
         )
-        self.assertTrue(np.allclose(result, (expected_result+3)))
+        self.assertTrue(np.allclose(result, expected_result))
 
     def test_convolute(self):
         """ Procedure:

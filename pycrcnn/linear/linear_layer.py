@@ -39,8 +39,8 @@ class LinearLayer:
             self.bias = c.encode_vector(HE, bias)
 
     def __call__(self, t):
-        result = [[np.sum(image * row) for row in self.weights] for image in t]
+        result = np.array([[np.sum(image * row) for row in self.weights] for image in t])
         if self.bias is not None:
-            result = [row + self.bias for row in result]
+            result = np.array([row + self.bias for row in result])
         return result
 
