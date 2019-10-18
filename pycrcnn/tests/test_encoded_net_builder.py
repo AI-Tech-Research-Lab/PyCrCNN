@@ -27,7 +27,6 @@ class NetBuilderTester(unittest.TestCase):
         HE.keyGen()
 
         encoded_net = build_from_pytorch(HE, plain_net, [2])
-        print(encoded_net)
 
         self.assertTrue(np.allclose(plain_net[0].weight.detach().numpy(),
                         decode_matrix(HE, encoded_net[0].weights)))

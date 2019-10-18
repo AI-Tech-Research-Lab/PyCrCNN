@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from Pyfhel import Pyfhel
-from pycrcnn.parameters_tester.param_tester_cli import get_max_error, get_min_noise
+from pycrcnn.parameters_tester.utils.utils import get_max_error, get_min_noise
 
 from pycrcnn.crypto.crypto import encrypt_matrix
 
