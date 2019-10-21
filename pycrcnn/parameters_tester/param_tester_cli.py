@@ -8,7 +8,6 @@ from pycrcnn.functional.flatten_layer import FlattenLayer
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.crypto import crypto as cr
 import numpy as np
-import model
 
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 from pycrcnn.parameters_tester.utils.utils import get_max_error, get_min_noise
@@ -79,11 +78,13 @@ def test_net(HE, net, encoded_layers, images, verbose):
 
 
 def param_test():
-    # model.py should be in the directory Python is launched and should contain the network definition
-    # model.pt should be in the directory Python is launched and should contain the network weights
-    model.net.load_state_dict(torch.load("./model.pt"))
-    model.net.eval()
-    plain_net = model.net
+
+    # model.pt should be in the directory Python is launched and should be produced by saving the PyTorch model
+    # with
+    # torch.save(net, path)
+
+    plain_net = torch.load("./model_full.pt")
+    plain_net.eval()
 
     test_set = torchvision.datasets.MNIST(
         root='./data'
