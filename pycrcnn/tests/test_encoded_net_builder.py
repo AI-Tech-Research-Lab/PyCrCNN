@@ -35,9 +35,9 @@ class NetBuilderTester(unittest.TestCase):
                                     decode_matrix(HE, encoded_net[0].bias)))
 
         self.assertEqual(plain_net[0].stride[0],
-                         encoded_net[0].x_stride)
+                         encoded_net[0].stride[0])
         self.assertEqual(plain_net[0].stride[1],
-                         encoded_net[0].y_stride)
+                         encoded_net[0].stride[1])
 
         self.assertEqual(plain_net[1].kernel_size, encoded_net[1].kernel_size)
         self.assertEqual(plain_net[1].stride, encoded_net[1].stride)
@@ -53,9 +53,9 @@ class NetBuilderTester(unittest.TestCase):
         self.assertEqual(encoded_net[5].bias, None)
 
         self.assertEqual(plain_net[5].stride[0],
-                         encoded_net[6].x_stride)
+                         encoded_net[6].stride[0])
         self.assertEqual(plain_net[5].stride[1],
-                         encoded_net[6].y_stride)
+                         encoded_net[6].stride[1])
 
 
 if __name__ == '__main__':

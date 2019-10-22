@@ -1,5 +1,4 @@
 import numpy as np
-
 from ..crypto import crypto as c
 
 
@@ -15,10 +14,10 @@ class ConvolutionalLayer:
     weights : np.array( dtype=PyPtxt )
         Weights of the layer, aka filters in form
         [n_filters, n_layers, y, x]
-    x_stride : int
-        Horizontal stride
-    y_stride : int
-        Vertical stride
+    stride : (int, int)
+        Stride (y, x)
+    padding : (int, int)
+        Padding (y, x)
     bias : np.array( dtype=PyPtxt ), default=None
         Biases of the layer, 1-D array
 
@@ -33,17 +32,18 @@ class ConvolutionalLayer:
         using weights, biases and strides of the layer.
     """
 
-    def __init__(self, HE, weights, x_stride, y_stride, bias=None):
+    def __init__(self, HE, weights, stride=(1, 1), padding=(0, 0), bias=None):
         self.HE = HE
         self.weights = c.encode_matrix(HE, weights)
-        self.x_stride = x_stride
-        self.y_stride = y_stride
+        self.stride = stride
+        self.padding = padding
         self.bias = bias
         if bias is not None:
             self.bias = c.encode_matrix(HE, bias)
 
     def __call__(self, t):
-        result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.x_stride, self.y_stride)
+        t = apply_padding(t, self.padding)
+        result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.stride)
                                     for image_layer, filter_layer in zip(image, _filter)], axis=0)
                             for _filter in self.weights]
                            for image in t])
@@ -54,7 +54,38 @@ class ConvolutionalLayer:
             return result
 
 
-def convolute2d(image, filter_matrix, x_stride, y_stride):
+def apply_padding(t, padding):
+    """Execute a padding operation given a batch of images in the form
+        [n_image, n_layer, y, x]
+       After the execution, the result will be in the form
+        [n_image, n_layer, y+padding, x+padding]
+       The element in the new rows/column will be zero.
+       Due to Pyfhel limits, a sum/product between two PyPtxt can't be done.
+       This leads to the need of having a PyCtxt which has to be zero if decrypted: this is done by
+       subtracting an arbitrary value to itself.
+
+    Parameters
+    ----------
+    t: np.array( dtype=PyCtxt )
+        Encrypted image to execute the padding on, in the form
+        [n_images, n_layer, y, x]
+    padding: (int, int)
+
+    Returns
+    -------
+    result : np.array( dtype=PyCtxt )
+        Encrypted result of the padding, in the form
+        [n_images, n_layer, y+padding, x+padding]
+    """
+
+    y_p = padding[0]
+    x_p = padding[1]
+    zero = t[0][0][y_p+1][x_p+1] - t[0][0][y_p+1][x_p+1]
+    result = [[np.pad(mat, ((y_p, y_p), (x_p, x_p)), 'constant', constant_values=zero) for mat in layer] for layer in t]
+    return result
+
+
+def convolute2d(image, filter_matrix, stride):
     """Execute a convolution operation given an 2D-image, a 2D-filter
     and related strides.
 
@@ -67,10 +98,8 @@ def convolute2d(image, filter_matrix, x_stride, y_stride):
     filter_matrix : np.array( dtype=PyPtxt )
         Encoded weights to use in the convolution, in the form
         [y, x]
-    x_stride : int
-        Horizontal stride
-    y_stride : int
-        Vertical stride
+    stride : (int, int)
+        Stride
 
     Returns
     -------
@@ -82,6 +111,9 @@ def convolute2d(image, filter_matrix, x_stride, y_stride):
     y_d = len(image)
     x_f = len(filter_matrix[0])
     y_f = len(filter_matrix)
+
+    y_stride = stride[0]
+    x_stride = stride[1]
 
     x_o = ((x_d - x_f) // x_stride) + 1
     y_o = ((y_d - y_f) // y_stride) + 1

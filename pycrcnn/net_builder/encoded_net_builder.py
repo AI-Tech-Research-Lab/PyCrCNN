@@ -34,10 +34,10 @@ def build_from_pytorch(HE, net, rencrypt_positions):
         else:
             bias = layer.bias.detach().numpy()
 
-        return ConvolutionalLayer(HE, layer.weight.detach().numpy(),
-                                  layer.stride[0],
-                                  layer.stride[1],
-                                  bias)
+        return ConvolutionalLayer(HE, weights=layer.weight.detach().numpy(),
+                                  stride=layer.stride,
+                                  padding=layer.padding,
+                                  bias=bias)
 
     def lin_layer(layer):
         if layer.bias is None:
