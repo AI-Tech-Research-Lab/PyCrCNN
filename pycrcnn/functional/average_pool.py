@@ -62,7 +62,9 @@ def _avg(HE, image, kernel_size, stride):
 
     denominator = HE.encodeFrac(1 / (kernel_size * kernel_size))
 
-    return [[np.sum(image[index_row*stride:index_row*stride + kernel_size
-                            , index_column*stride:index_column*stride + kernel_size]) * denominator
-            for index_column in range(0, x_o)]
-            for index_row in range(0, y_o)]
+    def get_submatrix(matrix, x, y):
+        index_row = y * stride
+        index_column = x * stride
+        return matrix[index_row: index_row + kernel_size, index_column: index_column + kernel_size]
+
+    return [[np.sum(get_submatrix(image, x, y)) * denominator for x in range(0, x_o)] for y in range(0, y_o)]

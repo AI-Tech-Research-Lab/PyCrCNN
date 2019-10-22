@@ -68,42 +68,61 @@ class MyTestCase(unittest.TestCase):
         HE.keyGen()
         HE.relinKeyGen(30, 100)
 
-        new_weights = np.array(
-            [
-                [
-                    [
-                        [1, 0, 1]
-                        , [0, 1, 0]
-                        , [1, 0, 1]
-                    ]
-                ],
-                [
-                    [
-                        [1, 0, 1]
-                        , [0, 1, 0]
-                        , [1, 0, 1]
-                    ]
-                ]
-            ])
-        bias = np.array([3, 4])
+        filters = np.array(
+         [[[[ 0.1915, -0.0583, -0.0125],
+          [-0.1236, -0.1610,  0.0203],
+          [ 0.1431,  0.2236,  0.0757]],
 
-        conv_layer = conv.ConvolutionalLayer(HE, new_weights
+         [[-0.2123, -0.1988, -0.1835],
+          [ 0.2101, -0.1124, -0.1516],
+          [ 0.1216, -0.2243, -0.0824]]],
+
+
+        [[[-0.2148,  0.2113, -0.1670],
+          [-0.0213,  0.0091, -0.0951],
+          [-0.0953, -0.1923, -0.0630]],
+
+         [[-0.1646, -0.0732, -0.1820],
+          [-0.0294,  0.1245,  0.2197],
+          [-0.2307,  0.0445, -0.1276]]]])
+
+        bias = np.array([-0.0983,  0.1762])
+
+        conv_layer = conv.ConvolutionalLayer(HE, filters
                                              , 1, 1, bias)
 
-        image = np.array([[[
-            [1, 1, 1, 0, 0]
-            , [0, 1, 1, 1, 0]
-            , [0, 0, 1, 1, 1]
-            , [0, 0, 1, 1, 0]
-            , [0, 1, 1, 0, 0]
-            ]],
-            [[
-                [1, 2, 1, 0, 0]
-                , [0, 1, 1, 1, 0]
-                , [0, 3, 1, 1, 1]
-                , [0, 0, 1, 1, 0]
-                , [0, 1, 1, 0, 4]
-            ]]
+        image = np.array([
+            [
+                [
+                    [1, 1, 1, 0, 0]
+                    , [0, 1, 1, 1, 0]
+                    , [0, 0, 1, 1, 1]
+                    , [0, 0, 1, 1, 0]
+                    , [0, 1, 1, 0, 0]
+                ],
+                [
+                    [1, 0, 1, 1, 0]
+                    , [0, 1, 2, 0, 0]
+                    , [0, 0, 1, 0, 1]
+                    , [0, 1, 1, 1, 0]
+                    , [0, 1, 0, 0, 0]],
+            ],
+            [
+                [
+                    [1, 1, 1, 0, 0]
+                    , [0, 1, 2, 1, 1]
+                    , [0, 0, 1, 1, 1]
+                    , [1, 0, 2, 1, 0]
+                    , [0, 0, 1, 0, 0]
+                ],
+                [
+                    [1, 0, 2, 0, 0]
+                    , [0, 1, 1, 1, 2]
+                    , [1, 0, 0, 1, 1]
+                    , [0, 0, 1, 1, 0]
+                    , [0, 0, 2, 0, 0]
+                ]
+            ]
         ])
 
         encrypted_image = cr.encrypt_matrix(HE, image)
@@ -112,131 +131,25 @@ class MyTestCase(unittest.TestCase):
         result = cr.decrypt_matrix(HE, encrypted_result)
 
         expected_result = np.array([
-        [[[ 7.,  6.,  7.],
-          [ 5.,  7.,  6.],
-          [ 5.,  6.,  7.]],
+         [[[-0.9363, -0.5513,  0.2994],
+          [-1.0971, -0.7263, -0.3314],
+          [-0.4630, -0.0742, -0.4171]],
 
-         [[ 8.,  7.,  8.],
-          [ 6.,  8.,  7.],
-          [ 6.,  7.,  8.]]],
+         [[-0.0535, -0.1809, -1.0565],
+          [-0.2381, -0.8359, -0.5473],
+          [-0.1343, -0.1421, -0.3532]]],
 
-        [[[ 7., 10.,  7.],
-          [ 8.,  7.,  6.],
-          [ 5.,  9., 11.]],
 
-         [[ 8., 11.,  8.],
-          [ 9.,  8.,  7.],
-          [ 6., 10., 12.]]]]
-        )
-        self.assertTrue(np.allclose(result, expected_result))
+        [[[-0.7440, -0.6249, -0.7889],
+          [-0.1213, -0.7064, -0.6852],
+          [-0.6468, -1.1432, -0.2841]],
 
-    def test_convolute(self):
-        """ Procedure:
-                    1. Create a image in the form
-                        [n_images, n_layers, y, x]
-                    2. Create a set of filters in the form
-                        [n_filters, n_layers, y, x]
-                    3. Encrypt the image
-                    4. Encode the filters
-                    5. Convolute
-                    ---------
-                    Verification:
-                    6. Verify the result is the expected
-        """
-        HE = Pyfhel()
-        HE.contextGen(65537)
-        HE.keyGen()
-        HE.relinKeyGen(30, 100)
+         [[-0.6534, -0.1401, -0.3956],
+          [-0.6751, -0.5997, -1.1430],
+          [-0.4654,  0.2028, -0.7447]]]])
 
-        image = np.array([
-            [
-                [
-                    [1, 1, 1, 0, 0]
-                  , [0, 1, 1, 1, 0]
-                  , [0, 0, 1, 1, 1]
-                  , [0, 0, 1, 1, 0]
-                  , [0, 1, 1, 0, 0]
-                ],
-                [
-                    [1, 0, 1, 1, 0]
-                  , [0, 1, 2, 0, 0]
-                  , [0, 0, 1, 0, 1]
-                  , [0, 1, 1, 1, 0]
-                  , [0, 1, 0, 0, 0]],
-            ],
-            [
-                [
-                    [1, 1, 1, 0, 0]
-                  , [0, 1, 2, 1, 1]
-                  , [0, 0, 1, 1, 1]
-                  , [1, 0, 2, 1, 0]
-                  , [0, 0, 1, 0, 0]
-                ],
-                [
-                    [1, 0, 2, 0, 0]
-                  , [0, 1, 1, 1, 2]
-                  , [1, 0, 0, 1, 1]
-                  , [0, 0, 1, 1, 0]
-                  , [0, 0, 2, 0, 0]
-                ]
-            ]
-        ])
+        self.assertTrue(np.allclose(result, expected_result, 0.01))
 
-        filters = np.array([
-            [
-                [
-                    [1, 0, 1]
-                  , [0, 1, 0]
-                  , [1, 0, 1]
-                ]
-                ,
-                [
-                    [0, 1, 0]
-                  , [1, 0, 1]
-                  , [2, 0, 1]
-                ]
-            ]
-            ,
-            [
-                [
-                    [0, 1, 0]
-                  , [1, 0, 1]
-                  , [2, 0, 1]
-                ]
-                ,
-                [
-                    [1, 0, 1]
-                  , [0, 1, 0]
-                  , [1, 0, 1]
-                ]
-            ]
-        ])
-
-        encrypted_image = cr.encrypt_matrix(HE, image)
-        encoded_filters = cr.encode_matrix(HE, filters)
-
-        encrypted_result = conv.convolute(HE, encrypted_image, encoded_filters, 1, 1)
-
-        result = cr.decrypt_matrix(HE, encrypted_result)
-
-        expected_result = np.array([
-            [[[ 7.,  5., 10.],
-              [ 5.,  9.,  7.],
-              [ 3.,  8.,  5.]],
-
-             [[ 7.,  7.,  7.],
-              [ 6.,  7.,  8.],
-              [ 4.,  6.,  7.]]],
-
-            [[[ 7.,  9.,  8.],
-              [ 8.,  7., 10.],
-              [ 5.,  4., 10.]],
-
-             [[ 9.,  6., 10.],
-              [ 8.,  7., 12.],
-              [ 7.,  4.,  9.]]]])
-
-        self.assertTrue(np.allclose(result, expected_result))
 
     def test_convolute2d(self):
         """ Procedure:
@@ -274,7 +187,7 @@ class MyTestCase(unittest.TestCase):
         encrypted_image = cr.encrypt_matrix(HE, image)
         encoded_filter = cr.encode_matrix(HE, filter_matrix)
 
-        encrypted_result = conv.convolute2d(HE, encrypted_image[0][0], encoded_filter[0][0], 1, 1)
+        encrypted_result = conv.convolute2d(encrypted_image[0][0], encoded_filter[0][0], 1, 1)
 
         self.assertEqual(HE.decryptFrac(encrypted_result[0][0]), 4)
         self.assertEqual(HE.decryptFrac(encrypted_result[0][1]), 3)

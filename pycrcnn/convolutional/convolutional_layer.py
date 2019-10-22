@@ -1,7 +1,5 @@
 import numpy as np
 
-from Pyfhel import PyCtxt
-
 from ..crypto import crypto as c
 
 
@@ -45,67 +43,18 @@ class ConvolutionalLayer:
             self.bias = c.encode_matrix(HE, bias)
 
     def __call__(self, t):
-        result = convolute(self.HE, t, self.weights, self.x_stride, self.y_stride)
+        result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.x_stride, self.y_stride)
+                                    for image_layer, filter_layer in zip(image, _filter)], axis=0)
+                            for _filter in self.weights]
+                           for image in t])
+
         if self.bias is not None:
             return np.array([[layer + bias for layer, bias in zip(image, self.bias)] for image in result])
+        else:
+            return result
 
 
-def convolute(HE, image, filters, x_stride, y_stride):
-    """Execute the convolution operation, given a batch of images,
-    a set of weights and related strides.
-
-
-    Parameters
-    ----------
-    HE : Pyfhel
-        Pyfhel object
-    image : np.array( dtype=PyCtxt )
-        Encrypted image to execute the convolution on, in the form
-        [n_images, n_layers, y, x]
-    filters : np.array( dtype=PyPtxt )
-        Encoded weights to use in the convolution, in the form
-        [n_filter, n_layers, y, x]
-    x_stride : int
-        Horizontal stride
-    y_stride : int
-        Vertical stride
-
-    Returns
-    -------
-    result : np.array( dtype=PtCtxt )
-        Encrypted result of the convolution, in the form
-        [n_images, n_layers, y, x]
-    """
-    n_images = len(image)
-    n_layers = len(image[0])
-    x_d = len(image[0][0])
-    y_d = len(image[0][0][0])
-
-    n_filters = len(filters)
-    x_f = len(filters[0][0])
-    y_f = len(filters[0][0][0])
-
-    x_o = ((x_d - x_f) // x_stride) + 1
-    y_o = ((y_d - y_f) // y_stride) + 1
-
-    result = np.empty((n_images, n_filters, x_o, y_o), dtype=PyCtxt)
-
-    for n_image in range(0, n_images):
-
-        for n_filter in range(0, n_filters):
-
-            partial_result = c.encode_matrix(HE, np.zeros((x_o, y_o), dtype=float))
-            for n_layer in range(0, n_layers):
-                partial_result = convolute2d(HE, image[n_image][n_layer]
-                                             , filters[n_filter][n_layer]
-                                             , x_stride
-                                             , y_stride) + partial_result
-            result[n_image][n_filter] = partial_result
-
-    return result
-
-
-def convolute2d(HE, image, filter_matrix, x_stride, y_stride):
+def convolute2d(image, filter_matrix, x_stride, y_stride):
     """Execute a convolution operation given an 2D-image, a 2D-filter
     and related strides.
 
@@ -115,7 +64,7 @@ def convolute2d(HE, image, filter_matrix, x_stride, y_stride):
     image : np.array( dtype=PyCtxt )
         Encrypted image to execute the convolution on, in the form
         [y, x]
-    filters : np.array( dtype=PyPtxt )
+    filter_matrix : np.array( dtype=PyPtxt )
         Encoded weights to use in the convolution, in the form
         [y, x]
     x_stride : int
@@ -137,14 +86,10 @@ def convolute2d(HE, image, filter_matrix, x_stride, y_stride):
     x_o = ((x_d - x_f) // x_stride) + 1
     y_o = ((y_d - y_f) // y_stride) + 1
 
-    result = np.empty((x_o, y_o), dtype=PyCtxt)
+    def get_submatrix(matrix, x, y):
+        index_row = y * y_stride
+        index_column = x * x_stride
+        return matrix[index_row: index_row + y_f, index_column: index_column + x_f]
 
-    for i in range(0, y_o):
-        index_row = i * y_stride
-        for j in range(0, x_o):
-            index_column = j * x_stride
-            result[i][j] = np.sum(image[index_row:index_row + y_f
-                                  , index_column:index_column + x_f] * filter_matrix)
-            HE.relinearize(result[i][j])
-
-    return result
+    return np.array(
+        [[np.sum(get_submatrix(image, x, y) * filter_matrix) for x in range(0, x_o)] for y in range(0, y_o)])
