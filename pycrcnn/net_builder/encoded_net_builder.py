@@ -48,7 +48,13 @@ def build_from_pytorch(HE, net, rencrypt_positions):
                            bias)
 
     def avg_pool_layer(layer):
-        return AveragePoolLayer(HE, layer.kernel_size, layer.stride)
+        # This proxy is required because in PyTorch an AvgPool2d can have kernel_size, stride and padding either of
+        # type (int, int) or int, unlike in Conv2d
+        kernel_size = (layer.kernel_size, layer.kernel_size) if isinstance(layer.kernel_size, int) else layer.kernel_size
+        stride = (layer.stride, layer.stride) if isinstance(layer.stride, int) else layer.stride
+        padding = (layer.padding, layer.padding) if isinstance(layer.padding, int) else layer.padding
+
+        return AveragePoolLayer(HE, kernel_size, stride, padding)
 
     def flatten_layer(layer):
         return FlattenLayer()

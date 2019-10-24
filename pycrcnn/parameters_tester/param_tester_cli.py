@@ -4,13 +4,8 @@ import torchvision.transforms as transforms
 
 from Pyfhel import Pyfhel
 
-from pycrcnn.functional.flatten_layer import FlattenLayer
-from pycrcnn.functional.rencryption_layer import RencryptionLayer
-from pycrcnn.crypto import crypto as cr
-import numpy as np
-
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
-from pycrcnn.parameters_tester.utils.utils import get_max_error, get_min_noise
+from pycrcnn.parameters_tester.utils.utils import test_net
 
 
 def ask_encryption_parameters():
@@ -41,40 +36,6 @@ def ask_encryption_parameters():
             get_another_case = False
 
     return parameters_list
-
-
-def test_net(HE, net, encoded_layers, images, verbose):
-    enc_images = cr.encrypt_matrix(HE, images.detach().numpy())
-    net_iterator = net.children()
-
-    def print_stats():
-        max_error_value, max_error_position = get_max_error(HE, images.detach().numpy(), enc_images)
-        print("\n------------ INTERMEDIATE STATS ------------------------")
-        print("Max error = ", max_error_value, " at ",  max_error_position)
-        print("Plain value = ", images[max_error_position].detach().numpy(), " , cipher value = "
-              , HE.decryptFrac(enc_images[max_error_position]))
-        print("Avg value= ", np.average(images.detach().numpy()))
-        print("Min noise= ", get_min_noise(HE, enc_images))
-
-    if verbose:
-        print("Min noise initial= ", get_min_noise(HE, enc_images))
-
-    for layer in encoded_layers:
-        enc_images = layer(enc_images)
-        if not (type(layer) == RencryptionLayer):
-            images = next(net_iterator)(images)
-
-        if verbose and not (type(layer) == FlattenLayer) and not (type(layer) == RencryptionLayer):
-            print_stats()
-
-    dec_matrix = cr.decrypt_matrix(HE, enc_images)
-    final_error = np.max(abs(images.detach().numpy() - dec_matrix))
-    if verbose:
-        print("\n------------ FINAL RESULTS --------------------------")
-        print(images)
-        print(dec_matrix)
-
-    return final_error
 
 
 def param_test():
