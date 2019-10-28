@@ -92,7 +92,7 @@ def param_test():
         HE.contextGen(m=encryption_parameters[i]["m"],
                       p=encryption_parameters[i]["p"],
                       sec=encryption_parameters[i]["sec"],
-                      base=encryption_parameters[i]["sec"])
+                      base=encryption_parameters[i]["base"])
         HE.keyGen()
         HE.relinKeyGen(20, 5)
         rencrypt_positions = encryption_parameters[i]["rencrypt_positions"]

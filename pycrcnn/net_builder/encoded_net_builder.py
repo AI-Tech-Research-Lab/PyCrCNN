@@ -5,7 +5,7 @@ from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.linear.linear_layer import LinearLayer
 
 
-def build_from_pytorch(HE, net, rencrypt_positions):
+def build_from_pytorch(HE, net, rencrypt_positions=[]):
     """Given a PyTorch sequential net in a .pt/.pth file, returns
     an ordered list of encoded layers on which is possible
     to apply an encrypted computation.
