@@ -4,22 +4,14 @@ from Pyfhel import Pyfhel
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 
 
-def perform_computation(encryption_parameters, enc_images):
-
-        HE = Pyfhel()
-        HE.contextGen(m=encryption_parameters["encryption_parameters"][0]["m"],
-                      p=encryption_parameters["encryption_parameters"][0]["p"],
-                      sec=encryption_parameters["encryption_parameters"][0]["sec"],
-                      base=encryption_parameters["encryption_parameters"][0]["base"])
-        HE.keyGen()
-        HE.relinKeyGen(20, 5)
+def perform_computation(HE, enc_images):
 
         # Or whetever the plain net is
         plain_net = torch.load("./mnist.pt")
         plain_net.eval()
 
         # Choose how many layers encode
-        encoded_net = build_from_pytorch(HE, plain_net[0:3])
+        encoded_net = build_from_pytorch(HE, plain_net[0:4])
 
         for layer in encoded_net:
             enc_images = layer(enc_images)
