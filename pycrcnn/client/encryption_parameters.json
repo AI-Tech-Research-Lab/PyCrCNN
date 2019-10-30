@@ -1,8 +1,8 @@
 {
   "encryption_parameters" : [
     {
-      "m": 4096,
-      "p": 81241221,
+      "m": 2048,
+      "p": 13513511,
       "sec": 128,
       "base": 2,
       "rencrypt_positions": [ ]
