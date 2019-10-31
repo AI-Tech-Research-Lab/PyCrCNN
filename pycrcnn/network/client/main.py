@@ -7,12 +7,37 @@ import jsonpickle
 import numpy as np
 
 import requests
+import torch
 from Pyfhel import Pyfhel
 
 from pycrcnn.crypto.crypto import decrypt_matrix, encrypt_matrix
 
 
 def main():
+    """
+    This function executes a POST request given files:
+        - parameters: JSON file
+        - input_image: JSON file
+
+    Parameters contains both the encryption parameters requested, as p, m, sec level and base and the model requested,
+    with the layers on which the computation is requested (for example: MNIST, layers from 0 to 3)
+
+    Due to limitations in the serialization of Pyfhel objects, the following algorithm is executed:
+
+        - Decode the input image from the JSON file in a numpy arrau
+        - Creates the Pyfhel object, generate the keys
+        - Encrypt the image
+        - Create a zip file containing all the ciphertext in the matrix, saved one by one in a file with a meaningful
+          name, i.e "0-1-2-3" is the file containing the ciphertext of image 0, layer 1, row 2, column 3
+        - Send the post request with the parameters and the zip file
+        - After receiving the response, do the opposite of pass 4, i.e de-serialize the answer zip file in a
+          numpy matrix of ciphertexts
+        - After the result is reconstructed in a suitable numpy array of ciphertext, decrypt it to obtain the plain
+          result
+        - OPTIONAL: print both the result and the plain result, obtained doing the same computation locally to ensure
+          the result is correct (for debug purposes)
+        """
+
     request_temp_dir = tempfile.TemporaryDirectory()
     answer_temp_dir = tempfile.TemporaryDirectory()
     zip_temp_dir = tempfile.TemporaryDirectory()
@@ -20,8 +45,10 @@ def main():
     with open("./input_image.json", "rb") as f:
         input_image = jsonpickle.decode(f.read())
 
-    with open("./encryption_parameters.json", "r") as f:
-        encryption_parameters = jsonpickle.decode(f.read())["encryption_parameters"]
+    with open("./parameters.json", "r") as f:
+        parameters = jsonpickle.decode(f.read())
+        encryption_parameters = parameters["encryption_parameters"]
+        address = parameters["address"]
 
     HE = Pyfhel()
     HE.contextGen(m=encryption_parameters[0]["m"],
@@ -48,12 +75,12 @@ def main():
     print("DEBUG: Zip size=", os.path.getsize(os.path.join(zip_temp_dir.name, 'input.zip'))/(1024*1024), "MB")
 
     files = {
-        'encryption_parameters': open("./encryption_parameters.json", "rb"),
+        'parameters': open("./parameters.json", "rb"),
         'input': open(os.path.join(zip_temp_dir.name, 'input.zip'), 'rb')
     }
 
     print("DEBUG: Sending the request...")
-    response = requests.post('http://127.0.0.1:5000/compute', files=files)
+    response = requests.post(address, files=files)
 
     print("DEBUG: Response received, saving...")
     open(os.path.join(zip_temp_dir.name, 'answer.zip'), 'wb').write(response.content)
@@ -82,13 +109,13 @@ def main():
     print(dec_result)
 
     # EXTRA DEBUG TO CHECK THE RESULTS
-    # print("DEBUG: Plain results...")
-    # plain_net = torch.load("./mnist.pt")
-    # plain_net.eval()
-    #
-    # plain_net = plain_net[0:4]
-    # results_plain = plain_net(torch.tensor(input_image))
-    # print(results_plain)
+    print("DEBUG: Plain results...")
+    plain_net = torch.load("./mnist.pt")
+    plain_net.eval()
+
+    plain_net = plain_net[0:4]
+    results_plain = plain_net(torch.tensor(input_image))
+    print(results_plain)
 
 
 if __name__ == '__main__':
