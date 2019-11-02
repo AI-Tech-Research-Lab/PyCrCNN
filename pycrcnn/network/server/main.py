@@ -2,7 +2,7 @@ import glob
 import tempfile
 import zipfile
 import os
-from multiprocessing import Queue, Process
+from multiprocessing import Process
 
 import jsonpickle
 from Pyfhel import Pyfhel

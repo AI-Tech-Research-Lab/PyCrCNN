@@ -1,5 +1,4 @@
-import torch
-from Pyfhel import Pyfhel
+import jsonpickle
 
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 
@@ -7,8 +6,8 @@ from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 def perform_computation(HE, enc_images, net, layers):
     # Or whetever the plain net is
     if net == "MNIST":
-        plain_net = torch.load("./mnist.pt")
-        plain_net.eval()
+        with open("./mnist.json", "r") as f:
+            plain_net = jsonpickle.decode(f.read())
 
     # Choose how many layers encode
     plain_net = plain_net[min(layers):max(layers)+1]
@@ -19,8 +18,3 @@ def perform_computation(HE, enc_images, net, layers):
 
     return enc_images
 
-# 1) Ipoteticamente la rete è già presente in chiaro sul server, caricabile da file
-# 2) Ricevo una richiesta con dei parametri di encryption e un'immagine criptata (?), tutto in JSON
-# 3) Encodo la rete
-# 4) Computo sui primi tot layer
-# 5) Restituisco indietro il risultato
