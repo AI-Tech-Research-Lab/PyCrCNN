@@ -7,7 +7,7 @@ import jsonpickle
 import numpy as np
 
 import requests
-# import torch
+import torch
 from Pyfhel import Pyfhel
 
 from pycrcnn.crypto.crypto import decrypt_matrix, encrypt_matrix
@@ -109,13 +109,13 @@ def main():
     print(dec_result)
 
     # EXTRA DEBUG TO CHECK THE RESULTS
-    # print("DEBUG: Plain results...")
-    # with open("./mnist.json", "r") as f:
-    #     plain_net = jsonpickle.decode(f.read())
-    #
-    # plain_net = plain_net[0:4]
-    # results_plain = plain_net(torch.tensor(input_image))
-    # print(results_plain)
+    print("DEBUG: Plain results...")
+    plain_net = torch.load("./mnist.pt")
+    plain_net.eval()
+
+    plain_net = plain_net[0:4]
+    results_plain = plain_net(torch.tensor(input_image))
+    print(results_plain)
 
 
 if __name__ == '__main__':

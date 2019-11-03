@@ -1,4 +1,4 @@
-import jsonpickle
+import torch
 
 from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 
@@ -6,8 +6,8 @@ from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 def perform_computation(HE, enc_images, net, layers):
     # Or whetever the plain net is
     if net == "MNIST":
-        with open("./mnist.json", "r") as f:
-            plain_net = jsonpickle.decode(f.read())
+        plain_net = torch.load("./mnist.pt")
+        plain_net.eval()
 
     # Choose how many layers encode
     plain_net = plain_net[min(layers):max(layers)+1]
