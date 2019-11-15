@@ -1,0 +1,12 @@
+{
+  "encryption_parameters" : [
+    {
+      "m": 2048,
+      "p": 13513511,
+      "sec": 128,
+      "base": 2,
+      "rencrypt_positions": [ ]
+    }
+  ],
+  "debug" : "y"
+}

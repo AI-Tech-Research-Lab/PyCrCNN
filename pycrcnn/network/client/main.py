@@ -24,7 +24,7 @@ def main():
 
     Due to limitations in the serialization of Pyfhel objects, the following algorithm is executed:
 
-        - Decode the input image from the JSON file in a numpy arrau
+        - Decode the input image from the JSON file in a numpy array
         - Creates the Pyfhel object, generate the keys
         - Encrypt the image
         - Create a zip file containing all the ciphertext in the matrix, saved one by one in a file with a meaningful
@@ -36,7 +36,7 @@ def main():
           result
         - OPTIONAL: print both the result and the plain result, obtained doing the same computation locally to ensure
           the result is correct (for debug purposes)
-        """
+    """
 
     request_temp_dir = tempfile.TemporaryDirectory()
     answer_temp_dir = tempfile.TemporaryDirectory()
