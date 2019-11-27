@@ -83,7 +83,8 @@ def main():
     response = requests.post(address, files=files)
 
     print("DEBUG: Response received, saving...")
-    open(os.path.join(zip_temp_dir.name, 'answer.zip'), 'wb').write(response.content)
+    # open(os.path.join(zip_temp_dir.name, 'answer.zip'), 'wb').write(response.content)
+    open(os.path.join(zip_temp_dir.name, 'answer.zip'), 'wb').write(jsonpickle.decode(response.content))
 
     print("DEBUG: Extracting response...")
     zf = zipfile.ZipFile(os.path.join(zip_temp_dir.name, 'answer.zip'), mode='r')
