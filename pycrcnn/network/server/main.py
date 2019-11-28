@@ -39,7 +39,7 @@ def handle_request():
         - Answer the post request with the JSON containing those values
     """
 
-    def compute(payload, return_dict):
+    def compute(payload):
         temp_file = tempfile.NamedTemporaryFile()
 
         def encode_ciphertext(c):
@@ -85,18 +85,25 @@ def handle_request():
         answer = {
             "data": to_encode
         }
-        return_dict["answer"] = jsonpickle.encode(answer)
+        return jsonpickle.encode(answer)
 
+        # To support subprocessing, modify this function to take a return_dict as parameter and write:
+        # return_dict["answer"] = jsonpickle.encode(answer)
 
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-
-    p = multiprocessing.Process(target=compute, args=(request.json, return_dict))
-    p.start()
-    p.join()
+    # Subprocess stuff, use this to support subprocessing
+    # manager = multiprocessing.Manager()
+    # return_dict = manager.dict()
+    #
+    # p = multiprocessing.Process(target=compute, args=(request.json, return_dict))
+    # p.start()
+    # p.join()
+    # response = app.response_class(
+    #     response=return_dict["answer"],
+    #     mimetype='application/json'
+    # )
 
     response = app.response_class(
-        response=return_dict["answer"],
+        response=compute(request.json),
         mimetype='application/json'
     )
     return response
