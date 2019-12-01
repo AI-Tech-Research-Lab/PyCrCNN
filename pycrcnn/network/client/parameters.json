@@ -9,5 +9,6 @@
     }
   ],
   "net" : "MNIST",
-  "layers" : [0, 1, 2, 3]
+  "layers" : [0, 1, 2, 3],
+  "max_threads" : 5
 }

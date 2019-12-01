@@ -59,7 +59,7 @@ def param_test():
     # with
     # torch.save(net, path)
 
-    plain_net = torch.load("./model_full.pt")
+    plain_net = torch.load("./mnist.pt")
     plain_net.eval()
 
     test_set = torchvision.datasets.MNIST(

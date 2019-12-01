@@ -112,9 +112,9 @@ def load_net(path="./model.pt"):
     return net
 #
 #
-train_net(net, 2)
+# train_net(net, 2)
 # save_net()
-
+#
 # test_set = torchvision.datasets.MNIST(
 #         root='./data'
 #         , train=False
@@ -124,18 +124,19 @@ train_net(net, 2)
 #         ])
 #     )
 #
-# test_loader = torch.utils.data.DataLoader(test_set,batch_size=1)
+# test_loader = torch.utils.data.DataLoader(test_set,batch_size=10)
 # batch = next(iter(test_loader))
 # images, labels = batch
-#
-# # HE = Pyfhel()
-# # HE.contextGen(81241221, 4096)
-# # HE.keyGen()
 # #
-# # result = encrypt_matrix(HE, images.detach().numpy())
-#
+# # # HE = Pyfhel()
+# # # HE.contextGen(81241221, 4096)
+# # # HE.keyGen()
+# # #
+# # # result = encrypt_matrix(HE, images.detach().numpy())
+# #
+# print(images.shape)
 # with open("./input_image.json", "w") as f:
 #     f.write(jsonpickle.encode(images.detach().numpy()))
 
-with open("./mnist.json", "w") as f:
-    f.write(jsonpickle.encode(net))
+# with open("./mnist.json", "w") as f:
+#     f.write(jsonpickle.encode(net))
