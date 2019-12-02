@@ -40,7 +40,7 @@ def main():
 
     # jsonpickle.set_encoder_options('json', indent=4, sort_keys=False)
 
-    with open("./input_image.json", "rb") as f:
+    with open("./input_image_dim2.json", "rb") as f:
         input_image = jsonpickle.decode(f.read())
 
     with open("./parameters.json", "r") as f:

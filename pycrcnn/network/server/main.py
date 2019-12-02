@@ -11,9 +11,6 @@ from pycrcnn.network.server.executer import perform_computation
 
 app = Flask(__name__)
 
-max_threads = 5
-
-
 @app.route('/')
 def index():
     return 'Server Works!'
@@ -41,7 +38,7 @@ def handle_request():
         - Answer the post request with the JSON containing those values
     """
 
-    def compute(t, enc_parameters, ret_dict, ind):
+    def compute(t, encryption_parameters, net, layers, ret_dict, ind):
         temp_file = tempfile.NamedTemporaryFile()
 
         def encode_ciphertext(c):
@@ -61,10 +58,10 @@ def handle_request():
                 return c
 
         HE = Pyfhel()
-        HE.contextGen(m=enc_parameters[0]["m"],
-                      p=enc_parameters[0]["p"],
-                      sec=enc_parameters[0]["sec"],
-                      base=enc_parameters[0]["base"])
+        HE.contextGen(m=encryption_parameters["m"],
+                      p=encryption_parameters["p"],
+                      sec=encryption_parameters["sec"],
+                      base=encryption_parameters["base"])
         HE.keyGen()
         HE.relinKeyGen(20, 5)
 
@@ -73,7 +70,7 @@ def handle_request():
                     for column in layer]
                     for layer in t])
 
-        result = perform_computation(HE, enc_image, payload["net"], payload["layers"])
+        result = perform_computation(HE, enc_image, net, layers)
 
         encoded = [[[[encode_ciphertext(value) for value in row]
                     for row in column]
@@ -82,52 +79,60 @@ def handle_request():
 
         ret_dict[ind] = encoded
 
-    payload = jsonpickle.decode(request.json)
-    encryption_parameters = payload["encryption_parameters"]
-    data = payload["data"]
+    def exec_on_endpoint(payload):
+        max_threads = 3
+        payload = jsonpickle.decode(payload)
 
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-    processes = []
+        encryption_parameters = payload["encryption_parameters"][0]
+        net = payload["net"]
+        layers = payload["layers"]
+        data = payload["data"]
 
-    distributions = []
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        processes = []
 
-    if len(data) % max_threads == 0:
-        n_threads = max_threads
-        subtensors_dim = len(data) // n_threads
+        distributions = []
+
+        if len(data) % max_threads == 0:
+            n_threads = max_threads
+            subtensors_dim = len(data) // n_threads
+            for i in range(0, n_threads):
+                distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
+        else:
+            n_threads = min(max_threads, len(data))
+            subtensors_dim = len(data) // n_threads
+            for i in range(0, n_threads):
+                distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
+            for k in range(0, (len(data) % n_threads)):
+                distributions[k][1] += 1
+                distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+
         for i in range(0, n_threads):
-            distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
-    else:
-        n_threads = min(max_threads, len(data))
-        subtensors_dim = len(data) // n_threads
-        for i in range(0, n_threads):
-            distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
-        for k in range(0, (len(data) % n_threads)):
-            distributions[k][1] += 1
-            distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+            processes.append(multiprocessing.Process(target=compute, args=(data[distributions[i][0]:distributions[i][1]]
+                                                                           , encryption_parameters, net,
+                                                                           layers, return_dict, i)))
+            processes[-1].start()
 
-    for i in range(0, n_threads):
-        processes.append(multiprocessing.Process(target=compute, args=(data[distributions[i][0]:distributions[i][1]]
-                                                                       , encryption_parameters, return_dict, i)))
-        processes[-1].start()
+        for p in processes:
+            p.join()
 
-    for p in processes:
-        p.join()
+        result = np.array(return_dict[0])
+        for i in range(1, n_threads):
+            result = np.concatenate((result, return_dict[i]))
 
-    result = np.array(return_dict[0])
-    for i in range(1, n_threads):
-        result = np.concatenate((result, return_dict[i]))
+        answer = {
+            "data": result.tolist()
+        }
 
-    answer = {
-        "data": result.tolist()
-    }
+        response = app.response_class(
+            response=jsonpickle.encode(answer),
+            mimetype='application/json'
+        )
 
-    response = app.response_class(
-        response=jsonpickle.encode(answer),
-        mimetype='application/json'
-    )
+        return response
 
-    return response
+    return exec_on_endpoint(payload=request.json)
 
 
 if __name__ == '__main__':
