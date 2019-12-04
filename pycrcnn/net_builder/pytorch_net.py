@@ -124,7 +124,7 @@ test_set = torchvision.datasets.MNIST(
         ])
     )
 
-test_loader = torch.utils.data.DataLoader(test_set,batch_size=2)
+test_loader = torch.utils.data.DataLoader(test_set,batch_size=1)
 batch = next(iter(test_loader))
 images, labels = batch
 # #
@@ -135,7 +135,7 @@ images, labels = batch
 # # # result = encrypt_matrix(HE, images.detach().numpy())
 # #
 # print(images.shape)
-with open("./input_image.json", "w") as f:
+with open("./input_image_dim1.json", "w") as f:
     f.write(jsonpickle.encode(images.detach().numpy()))
 
 # with open("./mnist.json", "w") as f:

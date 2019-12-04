@@ -1,5 +1,8 @@
 {
-  "address" : "http://127.0.0.1:5000/compute",
+  "address" : "url of the server",
+  "ak" : "s3 access token",
+  "sk" : "s3 access pass",
+  "bk" : "backet name",
   "encryption_parameters" : [
     {
       "m": 2048,

@@ -1,13 +1,18 @@
 import base64
+import datetime
 import multiprocessing
+import os
 import tempfile
 
+import boto3 as boto3
 import jsonpickle
 import numpy as np
 
 import requests
 import torch
 from Pyfhel import Pyfhel
+import jsonpickle
+import json
 
 from pycrcnn.crypto.crypto import decrypt_matrix, encrypt_matrix
 
@@ -40,7 +45,7 @@ def main():
 
     # jsonpickle.set_encoder_options('json', indent=4, sort_keys=False)
 
-    with open("./input_image_dim2.json", "rb") as f:
+    with open("./input_image_dim1.json", "rb") as f:
         input_image = jsonpickle.decode(f.read())
 
     with open("./parameters.json", "r") as f:
@@ -66,10 +71,6 @@ def main():
 
 
 def remote_execution(data, parameters):
-
-    encryption_parameters = parameters["encryption_parameters"]
-    address = parameters["address"]
-    max_threads = parameters["max_threads"]
 
     def encode_ciphertext(c, temp_file):
         with (open(temp_file.name, "w+b")) as f:
@@ -106,6 +107,38 @@ def remote_execution(data, parameters):
         dec_res = decrypt_matrix(HE, enc_res)
         ret_dict[ind] = dec_res
 
+    def uploadS3(msg_path, bucket, ak, sk):
+        s3c = boto3.client(
+            's3',
+            aws_access_key_id=ak,
+            aws_secret_access_key=sk
+        )
+
+        if '/' in msg_path:
+            pos = len(msg_path) - 1
+            c = msg_path[pos]
+            while (c != '/'):
+                pos -= 1
+                c = msg_path[pos]
+            pos += 1
+        ts = str(datetime.datetime.now()).replace(' ', '_').replace(':', '-').replace('.', '-')
+        try:
+            in_file_name = 'input_payload_{}'.format(ts)
+            s3c.upload_file(msg_path, bucket, 'input/{}'.format(in_file_name))
+            return in_file_name
+        except:
+            raise Exception("error while uploading {}".format(msg_path))
+
+    address = parameters["address"]
+    ak = parameters["ak"]
+    sk = parameters["sk"]
+    bk = parameters["bk"]
+
+    encryption_parameters = parameters["encryption_parameters"]
+
+    max_threads = parameters["max_threads"]
+
+    temp_file_payload = tempfile.NamedTemporaryFile()
 
     HE = Pyfhel()
     HE.contextGen(m=encryption_parameters[0]["m"],
@@ -149,10 +182,44 @@ def remote_execution(data, parameters):
     payload = parameters
     payload["data"] = data.tolist()
 
-    json_payload = jsonpickle.encode(payload)
-    res = requests.post(address, json=json_payload)
+    with open(temp_file_payload.name, 'w') as fp:
+        json.dump(payload, fp)
 
-    enc_result = jsonpickle.decode(res.content)["data"]
+    remote_filename = uploadS3(temp_file_payload.name, bk, ak, sk)
+
+    msg = {
+        "access_key": ak,
+        "secret_key": sk,
+        "bucket": bk,
+        "filename": remote_filename
+    }
+    jmsg = json.dumps(msg)
+
+    r = requests.post(address, jmsg)
+
+    if r.status_code == 200:
+        print("Done.")
+        out_file = r.json()
+
+    print("Downloading response...")
+
+    s3r = boto3.resource(
+        's3',
+        aws_access_key_id=ak,
+        aws_secret_access_key=sk
+    )
+
+    obj = s3r.Object(bk, 'output/{}'.format(out_file))
+    resp_payload = json.load(obj.get()['Body'])
+
+    print("Cleaning S3 support files...")
+    inp_tbd = s3r.Object(bk, "input/{}".format(remote_filename))
+    out_tbd = s3r.Object(bk, "output/{}".format(out_file))
+    inp_tbd.delete();
+    out_tbd.delete();
+    print("Done.")
+
+    enc_result = resp_payload["data"]
 
     return_dict = manager.dict()
     processes = []
@@ -169,7 +236,6 @@ def remote_execution(data, parameters):
         result = np.concatenate((result, return_dict[i]))
 
     return result
-
 
 
 if __name__ == '__main__':
