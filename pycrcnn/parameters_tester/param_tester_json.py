@@ -2,6 +2,7 @@ import jsonpickle
 import torch
 import torchvision
 import numpy as np
+import torch.nn as nn
 from Pyfhel import Pyfhel
 from torchvision import transforms
 
@@ -12,6 +13,14 @@ from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 from pycrcnn.parameters_tester.utils.utils import get_max_error, get_min_noise
 
 jsonpickle.set_encoder_options('json', indent=4, sort_keys=False)
+
+
+class Square(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, t):
+        return torch.pow(t, 2)
 
 
 def get_parameter(option):
@@ -59,10 +68,13 @@ def param_test():
     # with
     # torch.save(net, path)
 
-    plain_net = torch.load("./mnist.pt")
-    plain_net.eval()
+    encryption_parameters = get_parameter("encryption_parameters")
+    debug = get_parameter("debug")
+    layers = get_parameter("layers")
+    dataset = get_parameter("dataset")
+    model_path = get_parameter("model_path")
 
-    test_set = torchvision.datasets.MNIST(
+    test_set = getattr(torchvision.datasets, dataset)(
         root='./data'
         , train=False
         , download=True
@@ -75,8 +87,8 @@ def param_test():
     batch = next(iter(test_loader))
     images, labels = batch
 
-    encryption_parameters = get_parameter("encryption_parameters")
-    debug = get_parameter("debug")
+    plain_net = torch.load(model_path)
+    plain_net.eval()
 
     final_partial_results = []
     max_error_results = []
@@ -95,8 +107,8 @@ def param_test():
                       base=encryption_parameters[i]["base"])
         HE.keyGen()
         HE.relinKeyGen(20, 5)
-        rencrypt_positions = encryption_parameters[i]["rencrypt_positions"]
-        encoded_net = build_from_pytorch(HE, plain_net, rencrypt_positions)
+
+        encoded_net = build_from_pytorch(HE, plain_net[min(layers):max(layers)+1])
         partial_results, final_error = test_net(HE, plain_net, encoded_net, images, debug)
 
         final_partial_results.append(partial_results)
