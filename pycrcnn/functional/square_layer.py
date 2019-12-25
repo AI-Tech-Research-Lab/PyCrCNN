@@ -29,7 +29,7 @@ class SquareLayer:
         self.HE = HE
 
     def __call__(self, image):
-        square(self.HE, image)
+        return square(self.HE, image)
 
 
 def square(HE, image):
