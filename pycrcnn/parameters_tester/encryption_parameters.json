@@ -4,9 +4,18 @@
       "m": 2048,
       "p": 13513511,
       "sec": 128,
-      "base": 2,
-      "rencrypt_positions": [ ]
+      "base": 2
+    },
+    {
+      "m": 2048,
+      "p": 13513511,
+      "sec": 192,
+      "base": 2
     }
   ],
-  "debug" : "y"
+  "debug" : "y",
+  "layers" : [0],
+  "dataset" : "CIFAR10",
+  "model_path" : "./SimpleModelApprox.pt",
+  "max_threads" : 2
 }
