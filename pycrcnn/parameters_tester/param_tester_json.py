@@ -1,4 +1,5 @@
 import multiprocessing
+import time
 
 import jsonpickle
 import torch
@@ -96,6 +97,7 @@ def param_test():
     # with
     # torch.save(net, path)
 
+    start_time = time.time()
     encryption_parameters = get_parameter("encryption_parameters")
     debug = get_parameter("debug")
     layers = get_parameter("layers")
@@ -159,6 +161,8 @@ def param_test():
 
     with open("./results.json", "w") as f:
         f.write(jsonpickle.encode(result))
+
+    print("Time: ", time.time() - start_time)
 
 
 if __name__ == '__main__':
