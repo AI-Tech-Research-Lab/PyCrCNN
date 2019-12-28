@@ -1,6 +1,8 @@
 import base64
 import multiprocessing
 import tempfile
+import torch.nn as nn
+import torch
 
 import jsonpickle
 from Pyfhel import Pyfhel
@@ -9,6 +11,15 @@ import numpy as np
 import argparse
 
 from pycrcnn.network.server.executer import perform_computation
+
+
+class Square(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, t):
+        return torch.pow(t, 2)
+
 
 app = Flask(__name__)
 

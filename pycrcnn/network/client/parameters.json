@@ -1,17 +1,17 @@
 {
-  "address" : "url of the server",
+  "address" : "http://127.0.0.1:5000/compute",
   "ak" : "s3 access token",
   "sk" : "s3 access pass",
   "bk" : "backet name",
   "encryption_parameters" : [
     {
       "m": 2048,
-      "p": 13513511,
+      "p": 11115,
       "sec": 128,
       "base": 2
     }
   ],
-  "net" : "MNIST",
-  "layers" : [0, 1, 2, 3],
-  "max_threads" : 2
+  "net" : "SimpleModel",
+  "layers" : [0, 1],
+  "max_threads" : 1
 }

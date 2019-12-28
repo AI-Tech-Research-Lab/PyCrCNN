@@ -462,7 +462,8 @@ def test_rest():
     plain_net = torch.load("./model.pt")
     plain_net.eval()
 
-    plain_net = plain_net[0:4]
+    layers = parameters["layers"]
+    plain_net = plain_net[min(layers):max(layers)+1]
     results_plain = plain_net(torch.tensor(input_image)).detach().numpy()
 
     torch_time = time.time() - start_time
