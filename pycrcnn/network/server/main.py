@@ -6,6 +6,7 @@ import jsonpickle
 from Pyfhel import Pyfhel
 from flask import Flask, request
 import numpy as np
+import argparse
 
 from pycrcnn.network.server.executer import perform_computation
 
@@ -38,7 +39,7 @@ def handle_request():
         - Answer the post request with the JSON containing those values
     """
 
-    def compute(t, encryption_parameters, net, layers, ret_dict, ind):
+    def compute(t, encryption_parameters, net, layers, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
 
         def encode_ciphertext(c):
@@ -77,10 +78,12 @@ def handle_request():
                     for column in layer]
                     for layer in result]
 
-        ret_dict[ind] = encoded
+        if ret_dict is not None:
+            ret_dict[ind] = encoded
+        else:
+            return encoded
 
     def exec_on_endpoint(payload):
-        max_threads = 3
         payload = jsonpickle.decode(payload)
 
         encryption_parameters = payload["encryption_parameters"][0]
@@ -88,41 +91,45 @@ def handle_request():
         layers = payload["layers"]
         data = payload["data"]
 
-        manager = multiprocessing.Manager()
-        return_dict = manager.dict()
-        processes = []
-
-        distributions = []
-
-        if len(data) % max_threads == 0:
-            n_threads = max_threads
-            subtensors_dim = len(data) // n_threads
-            for i in range(0, n_threads):
-                distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
+        if max_threads == 1:
+            result = compute(data, encryption_parameters, net, layers)
         else:
-            n_threads = min(max_threads, len(data))
-            subtensors_dim = len(data) // n_threads
+            manager = multiprocessing.Manager()
+            return_dict = manager.dict()
+            processes = []
+
+            distributions = []
+
+            if len(data) % max_threads == 0:
+                n_threads = max_threads
+                subtensors_dim = len(data) // n_threads
+                for i in range(0, n_threads):
+                    distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
+            else:
+                n_threads = min(max_threads, len(data))
+                subtensors_dim = len(data) // n_threads
+                for i in range(0, n_threads):
+                    distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
+                for k in range(0, (len(data) % n_threads)):
+                    distributions[k][1] += 1
+                    distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+
             for i in range(0, n_threads):
-                distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
-            for k in range(0, (len(data) % n_threads)):
-                distributions[k][1] += 1
-                distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+                processes.append(multiprocessing.Process(target=compute, args=(data[distributions[i][0]:distributions[i][1]]
+                                                                               , encryption_parameters, net,
+                                                                               layers, return_dict, i)))
+                processes[-1].start()
 
-        for i in range(0, n_threads):
-            processes.append(multiprocessing.Process(target=compute, args=(data[distributions[i][0]:distributions[i][1]]
-                                                                           , encryption_parameters, net,
-                                                                           layers, return_dict, i)))
-            processes[-1].start()
+            for p in processes:
+                p.join()
 
-        for p in processes:
-            p.join()
-
-        result = np.array(return_dict[0])
-        for i in range(1, n_threads):
-            result = np.concatenate((result, return_dict[i]))
+            result = np.array(return_dict[0])
+            for i in range(1, n_threads):
+                result = np.concatenate((result, return_dict[i]))
+            result = result.tolist()
 
         answer = {
-            "data": result.tolist()
+            "data": result
         }
 
         response = app.response_class(
@@ -136,4 +143,10 @@ def handle_request():
 
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='PyCrCNN server')
+    parser.add_argument("--max_threads", default=1, help="Maximum number of working threads on server.")
+
+    args = parser.parse_args()
+    max_threads = args.max_threads
     app.run(host='0.0.0.0', debug=False)

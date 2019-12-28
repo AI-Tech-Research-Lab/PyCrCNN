@@ -11,12 +11,20 @@ import numpy as np
 
 import requests
 import torch
+import torch.nn as nn
 from Pyfhel import Pyfhel
 import jsonpickle
 import json
 
 from pycrcnn.crypto.crypto import decrypt_matrix, encrypt_matrix
 
+
+class Square(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, t):
+        return torch.pow(t, 2)
 
 def main():
     """
@@ -261,7 +269,7 @@ def remote_execution_rest(data, parameters):
             c.load(temp_file.name, "float")
             return c
 
-    def crypt_and_encode(HE, t, ret_dict, ind):
+    def crypt_and_encode(HE, t, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
         enc_image = encrypt_matrix(HE, t)
 
@@ -269,16 +277,25 @@ def remote_execution_rest(data, parameters):
                   for row in column]
                  for column in layer]
                 for layer in enc_image]
-        ret_dict[ind] = data
+        data = np.array(data)
 
-    def decode_and_decrypt(HE, t, ret_dict, ind):
+        if ret_dict is not None:
+            ret_dict[ind] = data
+        else:
+            return data
+
+    def decode_and_decrypt(HE, t, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
         enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
                                  for row in column]
                                 for column in layer]
                                for layer in t])
         dec_res = decrypt_matrix(HE, enc_res)
-        ret_dict[ind] = dec_res
+        if ret_dict is not None:
+            ret_dict[ind] = dec_res
+        else:
+            return dec_res
+
 
     HE = Pyfhel()
     HE.contextGen(m=encryption_parameters[0]["m"],
@@ -287,61 +304,140 @@ def remote_execution_rest(data, parameters):
                   base=encryption_parameters[0]["base"])
     HE.keyGen()
 
-    manager = multiprocessing.Manager()
-    return_dict = manager.dict()
-    processes = []
+    if max_threads == 1:
+        data = crypt_and_encode(HE, data)
 
-    distributions = []
+        payload = parameters
+        payload["data"] = data.tolist()
 
-    if len(data) % max_threads == 0:
-        n_threads = max_threads
-        subtensors_dim = len(data) // n_threads
-        for i in range(0, n_threads):
-            distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
+        json_payload = jsonpickle.encode(payload)
+        res = requests.post(address, json=json_payload)
+
+        enc_result = jsonpickle.decode(res.content)["data"]
+
+        result = decode_and_decrypt(HE, enc_result)
+
+        return result
+
     else:
-        n_threads = min(max_threads, len(data))
-        subtensors_dim = len(data) // n_threads
+        manager = multiprocessing.Manager()
+        return_dict = manager.dict()
+        processes = []
+
+        distributions = []
+
+        if len(data) % max_threads == 0:
+            n_threads = max_threads
+            subtensors_dim = len(data) // n_threads
+            for i in range(0, n_threads):
+                distributions.append([i*subtensors_dim, i*subtensors_dim + subtensors_dim])
+        else:
+            n_threads = min(max_threads, len(data))
+            subtensors_dim = len(data) // n_threads
+            for i in range(0, n_threads):
+                distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
+            for k in range(0, (len(data) % n_threads)):
+                distributions[k][1] += 1
+                distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+
         for i in range(0, n_threads):
-            distributions.append([i*subtensors_dim, i*subtensors_dim+subtensors_dim])
-        for k in range(0, (len(data) % n_threads)):
-            distributions[k][1] += 1
-            distributions[k+1::] = [ [x+1, y+1] for x, y in distributions[k+1::]]
+            processes.append(multiprocessing.Process(target=crypt_and_encode, args=(HE, data[distributions[i][0]:distributions[i][1]]
+                                                                           , return_dict, i)))
+            processes[-1].start()
 
-    for i in range(0, n_threads):
-        processes.append(multiprocessing.Process(target=crypt_and_encode, args=(HE, data[distributions[i][0]:distributions[i][1]]
-                                                                       , return_dict, i)))
-        processes[-1].start()
+        for p in processes:
+            p.join()
 
-    for p in processes:
-        p.join()
+        data = np.array(return_dict[0])
+        for i in range(1, n_threads):
+            data = np.concatenate((data, return_dict[i]))
 
-    data = np.array(return_dict[0])
-    for i in range(1, n_threads):
-        data = np.concatenate((data, return_dict[i]))
+        payload = parameters
+        payload["data"] = data.tolist()
 
-    payload = parameters
-    payload["data"] = data.tolist()
+        json_payload = jsonpickle.encode(payload)
+        res = requests.post(address, json=json_payload)
 
-    json_payload = jsonpickle.encode(payload)
-    res = requests.post(address, json=json_payload)
+        enc_result = jsonpickle.decode(res.content)["data"]
 
-    enc_result = jsonpickle.decode(res.content)["data"]
+        return_dict = manager.dict()
+        processes = []
+        for i in range(0, n_threads):
+            processes.append(multiprocessing.Process(target=decode_and_decrypt, args=(HE, enc_result[distributions[i][0]:distributions[i][1]]
+                                                                           , return_dict, i)))
+            processes[-1].start()
 
-    return_dict = manager.dict()
-    processes = []
-    for i in range(0, n_threads):
-        processes.append(multiprocessing.Process(target=decode_and_decrypt, args=(HE, enc_result[distributions[i][0]:distributions[i][1]]
-                                                                       , return_dict, i)))
-        processes[-1].start()
+        for p in processes:
+            p.join()
 
-    for p in processes:
-        p.join()
+        result = np.array(return_dict[0])
+        for i in range(1, n_threads):
+            result = np.concatenate((result, return_dict[i]))
 
-    result = np.array(return_dict[0])
-    for i in range(1, n_threads):
-        result = np.concatenate((result, return_dict[i]))
+        return result
 
-    return result
+
+# def remote_execution_rest_singlethreading(data, parameters):
+#
+#     encryption_parameters = parameters["encryption_parameters"]
+#     address = parameters["address"]
+#
+#     def encode_ciphertext(c, temp_file):
+#         with (open(temp_file.name, "w+b")) as f:
+#             c.save(temp_file.name)
+#             bc = f.read()
+#             b64 = str(base64.b64encode(bc))[2:-1]
+#             return b64
+#
+#     def decode_ciphertext(b64, temp_file):
+#         with (open(temp_file.name, "w+b")) as f:
+#             x = bytes(b64, encoding='utf-8')
+#             x = base64.decodebytes(x)
+#             f.write(x)
+#             c = HE.encryptFrac(0)
+#             c.load(temp_file.name, "float")
+#             return c
+#
+#     def crypt_and_encode(HE, t):
+#         temp_file = tempfile.NamedTemporaryFile()
+#         enc_image = encrypt_matrix(HE, t)
+#
+#         data = [[[[encode_ciphertext(value, temp_file) for value in row]
+#                   for row in column]
+#                  for column in layer]
+#                 for layer in enc_image]
+#         data = np.array(data)
+#         return data
+#
+#     def decode_and_decrypt(HE, t):
+#         temp_file = tempfile.NamedTemporaryFile()
+#         enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
+#                                  for row in column]
+#                                 for column in layer]
+#                                for layer in t])
+#         dec_res = decrypt_matrix(HE, enc_res)
+#         return dec_res
+#
+#     HE = Pyfhel()
+#     HE.contextGen(m=encryption_parameters[0]["m"],
+#                   p=encryption_parameters[0]["p"],
+#                   sec=encryption_parameters[0]["sec"],
+#                   base=encryption_parameters[0]["base"])
+#     HE.keyGen()
+#
+#     data = crypt_and_encode(HE, data)
+#
+#     payload = parameters
+#     payload["data"] = data.tolist()
+#
+#     json_payload = jsonpickle.encode(payload)
+#     res = requests.post(address, json=json_payload)
+#
+#     enc_result = jsonpickle.decode(res.content)["data"]
+#
+#     result = decode_and_decrypt(HE, enc_result)
+#
+#     return result
 
 
 def test_rest():
@@ -363,7 +459,7 @@ def test_rest():
 
     start_time = time.time()
 
-    plain_net = torch.load("./mnist.pt")
+    plain_net = torch.load("./model.pt")
     plain_net.eval()
 
     plain_net = plain_net[0:4]
