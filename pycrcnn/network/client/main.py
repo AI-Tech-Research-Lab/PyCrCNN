@@ -17,6 +17,7 @@ import jsonpickle
 import json
 
 from pycrcnn.crypto.crypto import decrypt_matrix, encrypt_matrix
+from pycrcnn.parameters_tester.utils.utils import get_min_noise
 
 
 class Square(nn.Module):
@@ -286,10 +287,14 @@ def remote_execution_rest(data, parameters):
 
     def decode_and_decrypt(HE, t, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
-        enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
+        try:
+            enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
                                  for row in column]
                                 for column in layer]
                                for layer in t])
+        except:
+            enc_res = np.array([[decode_ciphertext(value, temp_file) for value in row]
+                                for row in t])
         dec_res = decrypt_matrix(HE, enc_res)
         if ret_dict is not None:
             ret_dict[ind] = dec_res
@@ -314,7 +319,7 @@ def remote_execution_rest(data, parameters):
         res = requests.post(address, json=json_payload)
 
         enc_result = jsonpickle.decode(res.content)["data"]
-
+        
         result = decode_and_decrypt(HE, enc_result)
 
         return result

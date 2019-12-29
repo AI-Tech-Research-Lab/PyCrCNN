@@ -84,10 +84,13 @@ def handle_request():
 
         result = perform_computation(HE, enc_image, net, layers)
 
-        encoded = [[[[encode_ciphertext(value) for value in row]
+        try:
+            encoded = [[[[encode_ciphertext(value) for value in row]
                     for row in column]
                     for column in layer]
                     for layer in result]
+        except:
+            encoded = [[encode_ciphertext(value) for value in row] for row in result]
 
         if ret_dict is not None:
             ret_dict[ind] = encoded
@@ -159,5 +162,5 @@ if __name__ == '__main__':
     parser.add_argument("--max_threads", default=1, help="Maximum number of working threads on server.")
 
     args = parser.parse_args()
-    max_threads = args.max_threads
+    max_threads = int(args.max_threads)
     app.run(host='0.0.0.0', debug=False)
