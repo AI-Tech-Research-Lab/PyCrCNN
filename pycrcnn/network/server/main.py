@@ -52,6 +52,7 @@ def handle_request():
 
     def compute(t, encryption_parameters, net, layers, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
+        t = np.array(t)
 
         def encode_ciphertext(c):
             with (open(temp_file.name, "w+b")) as f:
@@ -77,19 +78,23 @@ def handle_request():
         HE.keyGen()
         HE.relinKeyGen(20, 5)
 
-        enc_image = np.array([[[[decode_ciphertext(value) for value in row]
-                    for row in column]
-                    for column in layer]
-                    for layer in t])
+        if len(t.shape) > 2:
+            enc_image = np.array([[[[decode_ciphertext(value) for value in row]
+                        for row in column]
+                        for column in layer]
+                        for layer in t])
+        else:
+            enc_image = np.array([[decode_ciphertext(value) for value in row]
+                                    for row in t])
 
         result = perform_computation(HE, enc_image, net, layers)
 
-        try:
+        if len(result.shape) > 2:
             encoded = [[[[encode_ciphertext(value) for value in row]
-                    for row in column]
-                    for column in layer]
-                    for layer in result]
-        except:
+                         for row in column]
+                        for column in layer]
+                       for layer in result]
+        else:
             encoded = [[encode_ciphertext(value) for value in row] for row in result]
 
         if ret_dict is not None:
