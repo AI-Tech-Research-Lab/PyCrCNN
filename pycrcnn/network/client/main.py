@@ -274,10 +274,15 @@ def remote_execution_rest(data, parameters):
         temp_file = tempfile.NamedTemporaryFile()
         enc_image = encrypt_matrix(HE, t)
 
-        data = [[[[encode_ciphertext(value, temp_file) for value in row]
-                  for row in column]
-                 for column in layer]
-                for layer in enc_image]
+        if len(enc_image.shape) > 2:
+            data = [[[[encode_ciphertext(value, temp_file) for value in row]
+                      for row in column]
+                     for column in layer]
+                    for layer in enc_image]
+        else:
+            data = [[encode_ciphertext(value, temp_file) for value in row]
+                      for row in enc_image]
+
         data = np.array(data)
 
         if ret_dict is not None:
@@ -287,14 +292,16 @@ def remote_execution_rest(data, parameters):
 
     def decode_and_decrypt(HE, t, ret_dict=None, ind=None):
         temp_file = tempfile.NamedTemporaryFile()
-        try:
+        t = np.array(t)
+        if len(t.shape) > 2:
             enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
-                                 for row in column]
-                                for column in layer]
-                               for layer in t])
-        except:
+                                  for row in column]
+                                 for column in layer]
+                                for layer in t])
+        else:
             enc_res = np.array([[decode_ciphertext(value, temp_file) for value in row]
                                 for row in t])
+
         dec_res = decrypt_matrix(HE, enc_res)
         if ret_dict is not None:
             ret_dict[ind] = dec_res
@@ -380,69 +387,6 @@ def remote_execution_rest(data, parameters):
             result = np.concatenate((result, return_dict[i]))
 
         return result
-
-
-# def remote_execution_rest_singlethreading(data, parameters):
-#
-#     encryption_parameters = parameters["encryption_parameters"]
-#     address = parameters["address"]
-#
-#     def encode_ciphertext(c, temp_file):
-#         with (open(temp_file.name, "w+b")) as f:
-#             c.save(temp_file.name)
-#             bc = f.read()
-#             b64 = str(base64.b64encode(bc))[2:-1]
-#             return b64
-#
-#     def decode_ciphertext(b64, temp_file):
-#         with (open(temp_file.name, "w+b")) as f:
-#             x = bytes(b64, encoding='utf-8')
-#             x = base64.decodebytes(x)
-#             f.write(x)
-#             c = HE.encryptFrac(0)
-#             c.load(temp_file.name, "float")
-#             return c
-#
-#     def crypt_and_encode(HE, t):
-#         temp_file = tempfile.NamedTemporaryFile()
-#         enc_image = encrypt_matrix(HE, t)
-#
-#         data = [[[[encode_ciphertext(value, temp_file) for value in row]
-#                   for row in column]
-#                  for column in layer]
-#                 for layer in enc_image]
-#         data = np.array(data)
-#         return data
-#
-#     def decode_and_decrypt(HE, t):
-#         temp_file = tempfile.NamedTemporaryFile()
-#         enc_res = np.array([[[[decode_ciphertext(value, temp_file) for value in row]
-#                                  for row in column]
-#                                 for column in layer]
-#                                for layer in t])
-#         dec_res = decrypt_matrix(HE, enc_res)
-#         return dec_res
-#
-#     HE = Pyfhel()
-#     HE.contextGen(m=encryption_parameters[0]["m"],
-#                   p=encryption_parameters[0]["p"],
-#                   sec=encryption_parameters[0]["sec"],
-#                   base=encryption_parameters[0]["base"])
-#     HE.keyGen()
-#
-#     data = crypt_and_encode(HE, data)
-#
-#     payload = parameters
-#     payload["data"] = data.tolist()
-#
-#     json_payload = jsonpickle.encode(payload)
-#     res = requests.post(address, json=json_payload)
-#
-#     enc_result = jsonpickle.decode(res.content)["data"]
-#
-#     result = decode_and_decrypt(HE, enc_result)
-#
-#     return result
 
 
 def test_rest():
