@@ -14,7 +14,7 @@ from pycrcnn.net_builder.encoded_net_builder import build_from_pytorch
 from pycrcnn.crypto.crypto import encrypt_matrix, decrypt_matrix
 
 
-def local_execution(data, parameters):
+def local_execution(data, parameters, debug=False):
 
     def compute(local_HE, local_data, local_encoded_net, local_return_dict=None, ind=None):
         encrypted_data = encrypt_matrix(local_HE, local_data)
@@ -47,10 +47,13 @@ def local_execution(data, parameters):
     # Choose how many layers encode
     plain_net = plain_net[min(layers):max(layers) + 1]
 
-    start_time = time.time()
-    encoded_net = build_from_pytorch(HE, plain_net)
-    encoding_time = time.time() - start_time
-    print("Time for net encoding: ", encoding_time)
+    if debug:
+        start_time = time.time()
+        encoded_net = build_from_pytorch(HE, plain_net)
+        encoding_time = time.time() - start_time
+        print("Time for net encoding: ", encoding_time)
+    else:
+        encoded_net = build_from_pytorch(HE, plain_net)
 
     if max_threads == 1:
         result = compute(HE, data, encoded_net)
@@ -119,7 +122,7 @@ def test():
             images = jsonpickle.decode(f.read())
 
     start_time = time.time()
-    results = local_execution(images, params)
+    results = local_execution(images, params, True)
     remote_time = time.time() - start_time
 
     # EXTRA DEBUG TO CHECK THE RESULTS
