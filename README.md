@@ -1,4 +1,4 @@
 # PyCrCNN
 
-To run all the tests move to pycrcnn/ and launch
-python -m unittest discover
+PyCrCNN is the implementation of a privacy-respectful Machine Learning as a Service (MLaaS) which use Homomorphic Encryption (HE).
+The application has been tailored on Convolutional Neural Networks (CNNs).
