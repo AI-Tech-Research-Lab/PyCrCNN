@@ -3,6 +3,8 @@
 PyCrCNN is the implementation of a privacy-respectful Machine Learning as a Service (MLaaS) which use Homomorphic Encryption (HE).
 The application has been tailored on Convolutional Neural Networks (CNNs).
 
+PyCrCNN has been introduced in the [paper](https://arxiv.org/pdf/2003.13541.pdf) "A Privacy-Preserving Distributed Architecture for Deep-Learning-as-a-Service".
+
 ## Introduction
 PyCrCNN is a client/server application in which the server can run a Convolutional Neural Network on some data coming from a client.
 The peculiarity of this application is that Homomorphic Encryption is used: the data coming from the client (in this case, an image) is encrypted and the server doesn't have the keys to decrypt it.
