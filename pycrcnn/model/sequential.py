@@ -66,6 +66,10 @@ class Sequential:
 
         self.layers = [options[str(layer)[0:4]](layer) for layer in model]
 
-    def __call__(self, x):
+    def __call__(self, x, debug=False):
         for layer in self.layers:
-            x = layer(self.HE, x)
+            x = layer(x)
+            if debug:
+                print(f"Passed layer: {layer}")
+                print(f"Noise Budget: {self.HE.noise_budget(x.item(0))}")
+        return x

@@ -33,10 +33,10 @@ class LinearLayer:
 
     def __init__(self, HE, weights, bias=None):
         self.HE = HE
-        self.weights = c.encode_matrix(HE, weights)
+        self.weights = HE.encode_matrix(weights)
         self.bias = bias
         if bias is not None:
-            self.bias = c.encode_matrix(HE, bias)
+            self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
         result = np.array([[np.sum(image * row) for row in self.weights] for image in t])

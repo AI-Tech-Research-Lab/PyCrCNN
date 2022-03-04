@@ -70,7 +70,7 @@ def _avg(HE, image, kernel_size, stride):
     x_o = ((x_d - x_k) // x_s) + 1
     y_o = ((y_d - y_k) // y_s) + 1
 
-    denominator = HE.encodeFrac(1 / (x_k * y_k))
+    denominator = HE.encode_number(1 / (x_k * y_k))
 
     def get_submatrix(matrix, x, y):
         index_row = y * y_s

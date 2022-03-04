@@ -1,7 +1,6 @@
 import numpy as np
 
 from pycrcnn.functional.padding import apply_padding
-from ..crypto import crypto as c
 
 
 class ConvolutionalLayer:
@@ -36,12 +35,12 @@ class ConvolutionalLayer:
 
     def __init__(self, HE, weights, stride=(1, 1), padding=(0, 0), bias=None):
         self.HE = HE
-        self.weights = c.encode_matrix(HE, weights)
+        self.weights = HE.encode_matrix(weights)
         self.stride = stride
         self.padding = padding
         self.bias = bias
         if bias is not None:
-            self.bias = c.encode_matrix(HE, bias)
+            self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
         t = apply_padding(t, self.padding)
