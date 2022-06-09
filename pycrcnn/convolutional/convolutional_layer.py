@@ -1,6 +1,7 @@
 import numpy as np
 
 from pycrcnn.functional.padding import apply_padding
+from pycrcnn.he.HE import CKKSPyfhel
 
 
 class ConvolutionalLayer:
@@ -43,16 +44,21 @@ class ConvolutionalLayer:
             self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
-        t = apply_padding(t, self.padding)
+        # t = apply_padding(t, self.padding)
+        if isinstance(self.HE, CKKSPyfhel):
+            for w in np.ravel(self.weights):
+                for i in range(0, t[0][0][0][0].mod_level):
+                    self.HE.he.mod_switch_to_next(w)
+
         result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.stride)
                                     for image_layer, filter_layer in zip(image, _filter)], axis=0)
                             for _filter in self.weights]
                            for image in t])
 
         if self.bias is not None:
-            return np.array([[layer + bias for layer, bias in zip(image, self.bias)] for image in result])
-        else:
-            return result
+            result = np.array([[layer + bias for layer, bias in zip(image, self.bias)] for image in result])
+
+        return result
 
 
 def convolute2d(image, filter_matrix, stride):

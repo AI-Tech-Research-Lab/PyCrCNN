@@ -1,6 +1,7 @@
 import numpy as np
 
 from pycrcnn.functional.padding import apply_padding
+from pycrcnn.he.HE import CKKSPyfhel
 
 
 class AveragePoolLayer:
@@ -33,8 +34,12 @@ class AveragePoolLayer:
         self.padding = padding
 
     def __call__(self, t):
-        t = apply_padding(t, self.padding)
-        return np.array([[_avg(self.HE, layer, self.kernel_size, self.stride) for layer in image] for image in t])
+        # t = apply_padding(t, self.padding)
+        result = np.array([[_avg(self.HE, layer, self.kernel_size, self.stride) for layer in image] for image in t])
+
+        if isinstance(self.HE, CKKSPyfhel):
+            [self.HE.he.rescale_to_next(x) for x in np.ravel(result)]
+        return result
 
 
 def _avg(HE, image, kernel_size, stride):
@@ -42,22 +47,22 @@ def _avg(HE, image, kernel_size, stride):
         a kernel-size and a stride.
 
 
-        Parameters
-        ----------
-        HE: PYfhel object
-        image : np.array( dtype=PyCtxt )
-            Encrypted image to execute the pooling, in the form
-            [y, x]
-        kernel_size : (int, int)
-            size of the kernel (y, x)
-        stride : (int, int)
-            stride (y, x)
-        Returns
-        -------
-        result : np.array( dtype=PtCtxt )
-            Encrypted result of the pooling, in the form
-            [y, x]
-        """
+    Parameters
+    ----------
+    HE: PYfhel object
+    image : np.array( dtype=PyCtxt )
+        Encrypted image to execute the pooling, in the form
+        [y, x]
+    kernel_size : (int, int)
+        size of the kernel (y, x)
+    stride : (int, int)
+        stride (y, x)
+    Returns
+    -------
+    result : np.array( dtype=PtCtxt )
+        Encrypted result of the pooling, in the form
+        [y, x]
+    """
     x_s = stride[1]
     y_s = stride[0]
 
@@ -70,7 +75,10 @@ def _avg(HE, image, kernel_size, stride):
     x_o = ((x_d - x_k) // x_s) + 1
     y_o = ((y_d - y_k) // y_s) + 1
 
-    denominator = HE.encode_number(1 / (x_k * y_k))
+    denominator = HE.encode_frac(1 / (x_k * y_k))
+    if isinstance(HE, CKKSPyfhel):
+        for i in range(0, image[0][0].mod_level):
+            HE.he.mod_switch_to_next(denominator)
 
     def get_submatrix(matrix, x, y):
         index_row = y * y_s

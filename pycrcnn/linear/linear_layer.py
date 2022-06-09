@@ -1,6 +1,7 @@
 import numpy as np
 
 from ..crypto import crypto as c
+from ..he.HE import CKKSPyfhel
 
 
 class LinearLayer:
@@ -39,6 +40,11 @@ class LinearLayer:
             self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
+        if isinstance(self.HE, CKKSPyfhel):
+            for w in np.ravel(self.weights):
+                for i in range(0, t[0][0].mod_level):
+                    self.HE.he.mod_switch_to_next(w)
+
         result = np.array([[np.sum(image * row) for row in self.weights] for image in t])
         if self.bias is not None:
             result = np.array([row + self.bias for row in result])
