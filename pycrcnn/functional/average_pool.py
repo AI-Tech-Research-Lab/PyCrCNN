@@ -75,7 +75,7 @@ def _avg(HE, image, kernel_size, stride):
     x_o = ((x_d - x_k) // x_s) + 1
     y_o = ((y_d - y_k) // y_s) + 1
 
-    denominator = HE.encode_frac(1 / (x_k * y_k))
+    denominator = HE.encode(1 / (x_k * y_k))
     if isinstance(HE, CKKSPyfhel):
         for i in range(0, image[0][0].mod_level):
             HE.he.mod_switch_to_next(denominator)
