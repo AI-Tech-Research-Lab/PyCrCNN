@@ -40,13 +40,24 @@ class LinearLayer:
             self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
-        if isinstance(self.HE, CKKSPyfhel):
-            for w in np.ravel(self.weights):
-                for i in range(0, t[0][0].mod_level):
-                    self.HE.he.mod_switch_to_next(w)
+        # if isinstance(self.HE, CKKSPyfhel):
+        #     for w in np.ravel(self.weights):
+        #         for i in range(0, t[0][0].mod_level):
+        #             self.HE.he.mod_switch_to_next(w)
 
         result = np.array([[np.sum(image * row) for row in self.weights] for image in t])
+
+        # if isinstance(self.HE, CKKSPyfhel):
+        #     for w in np.ravel(result):
+        #         self.HE.he.rescale_to_next(w)
+
         if self.bias is not None:
+            # if isinstance(self.HE, CKKSPyfhel):
+            #     for w in np.ravel(self.bias):
+            #         for i in range(0, result[0][0].mod_level):
+            #             self.HE.he.mod_switch_to_next(w)
+
             result = np.array([row + self.bias for row in result])
+
         return result
 

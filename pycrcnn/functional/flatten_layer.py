@@ -23,4 +23,7 @@ class FlattenLayer:
 
     def __call__(self, image):
         dimension = image.shape
-        return image.reshape(dimension[0], dimension[1]*dimension[2]*dimension[3])
+        try:
+            return image.reshape(dimension[0], dimension[1]*dimension[2]*dimension[3])
+        except:
+            return image.reshape(dimension[0], dimension[1]*dimension[2])

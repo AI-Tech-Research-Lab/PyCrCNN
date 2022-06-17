@@ -4,7 +4,7 @@ from pycrcnn.functional.padding import apply_padding
 from pycrcnn.he.HE import CKKSPyfhel
 
 
-class ConvolutionalLayer:
+class Conv2d:
     """
     A class used to represent a convolutional layer
     ...
@@ -45,10 +45,10 @@ class ConvolutionalLayer:
 
     def __call__(self, t):
         # t = apply_padding(t, self.padding)
-        if isinstance(self.HE, CKKSPyfhel):
-            for w in np.ravel(self.weights):
-                for i in range(0, t[0][0][0][0].mod_level):
-                    self.HE.he.mod_switch_to_next(w)
+        # if isinstance(self.HE, CKKSPyfhel):
+        #     for w in np.ravel(self.weights):
+        #         for i in range(0, t[0][0][0][0].mod_level):
+        #             self.HE.he.mod_switch_to_next(w)
 
         result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.stride)
                                     for image_layer, filter_layer in zip(image, _filter)], axis=0)
@@ -101,3 +101,43 @@ def convolute2d(image, filter_matrix, stride):
 
     return np.array(
         [[np.sum(get_submatrix(image, x, y) * filter_matrix) for x in range(0, x_o)] for y in range(0, y_o)])
+
+
+class Conv1d:
+    def __init__(self, HE, weights, stride=(1, 1), padding=(0, 0), bias=None):
+        self.HE = HE
+        self.weights = HE.encode_matrix(weights)
+        self.stride = stride
+        self.padding = padding
+        self.bias = bias
+        if bias is not None:
+            self.bias = HE.encode_matrix(bias)
+
+    def __call__(self, t):
+        # t = apply_padding(t, self.padding)
+        result = np.array([[np.sum([convolute1d(ts_layer, filter_layer, self.stride)
+                                    for ts_layer, filter_layer in zip(_ts, _filter)], axis=0)
+                             for _filter in self.weights]
+                           for _ts in t])
+
+        if self.bias is not None:
+            return np.array([[layer + bias for layer, bias in zip(_ts, self.bias)] for _ts in result])
+        else:
+            return result
+
+
+def convolute1d(ts, filter_matrix, stride):
+    x_d = len(ts)
+    x_f = len(filter_matrix)
+
+    x_stride = stride[0]
+
+    x_o = ((x_d - x_f) // x_stride) + 1
+
+    def get_submatrix(matrix, x):
+        index_column = x * x_stride
+        return matrix[index_column: index_column + x_f]
+
+    return np.array(
+        [np.sum(get_submatrix(ts, x) * filter_matrix) for x in range(0, x_o)])
+

@@ -37,8 +37,8 @@ class AveragePoolLayer:
         # t = apply_padding(t, self.padding)
         result = np.array([[_avg(self.HE, layer, self.kernel_size, self.stride) for layer in image] for image in t])
 
-        if isinstance(self.HE, CKKSPyfhel):
-            [self.HE.he.rescale_to_next(x) for x in np.ravel(result)]
+        # if isinstance(self.HE, CKKSPyfhel):
+        #     [self.HE.he.rescale_to_next(x) for x in np.ravel(result)]
         return result
 
 
@@ -76,9 +76,9 @@ def _avg(HE, image, kernel_size, stride):
     y_o = ((y_d - y_k) // y_s) + 1
 
     denominator = HE.encode(1 / (x_k * y_k))
-    if isinstance(HE, CKKSPyfhel):
-        for i in range(0, image[0][0].mod_level):
-            HE.he.mod_switch_to_next(denominator)
+    # if isinstance(HE, CKKSPyfhel):
+    #     for i in range(0, image[0][0].mod_level):
+    #         HE.he.mod_switch_to_next(denominator)
 
     def get_submatrix(matrix, x, y):
         index_row = y * y_s

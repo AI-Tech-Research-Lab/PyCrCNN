@@ -1,5 +1,6 @@
 import numpy as np
 from Pyfhel import Pyfhel
+import tenseal as ts
 
 import tempfile
 
@@ -455,3 +456,118 @@ class BFVPyfhel_Fractional(HE):
             return self.he.noiseLevel(ciphertext)
         except SystemError:
             return "Can't get NB without secret key."
+
+
+class CKKSTenSEAL(HE):
+    def __init__(self, n=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
+        self.he = ts.context(ts.SCHEME_TYPE.CKKS, n, coeff_mod_bit_sizes=qi)
+        self.he.global_scale = scale
+
+    def encode(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def decode(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def encrypt(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return ts.ckks_vector(self.he, [x])
+
+    def decrypt(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x.decrypt()[0]
+
+    def generate_keys(self):
+        self.he.generate_galois_keys()
+
+    def get_public_key(self):
+        pass
+
+    def get_relin_key(self):
+        pass
+
+    def load_public_key(self, key):
+        pass
+
+    def load_relin_key(self, key):
+        pass
+
+    def encode_matrix(self, matrix):
+        """Encode a float nD-matrix in a PyPtxt nD-matrix.
+        Parameters
+        ----------
+        matrix : nD-np.array( dtype=float )
+            matrix to be encoded
+        Returns
+        -------
+        matrix
+            nD-np.array( dtype=PyPtxt ) with encoded values
+        """
+
+        try:
+            return np.array(list(map(self.encode, matrix)))
+        except TypeError:
+            return np.array([self.encode_matrix(m) for m in matrix])
+
+    def decode_matrix(self, matrix):
+        """Decode a PyPtxt nD-matrix in a float nD-matrix.
+        Parameters
+        ----------
+        matrix : nD-np.array( dtype=PyPtxt )
+            matrix to be decoded
+        Returns
+        -------
+        matrix
+            nD-np.array( dtype=float ) with float values
+        """
+        try:
+            return np.array(list(map(self.decode, matrix)))
+        except TypeError:
+            return np.array([self.decode_matrix(m) for m in matrix])
+
+    def encrypt_matrix(self, matrix):
+        """Encrypt a float nD-matrix in a PyCtxt nD-matrix.
+        Parameters
+        ----------
+        matrix : nD-np.array( dtype=float )
+            matrix to be encrypted
+        Returns
+        -------
+        matrix
+            nD-np.array( dtype=PyCtxt ) with encrypted values
+        """
+        try:
+            return np.array(list(map(self.encrypt, matrix)))
+        except TypeError:
+            return np.array([self.encrypt_matrix(m) for m in matrix])
+
+    def decrypt_matrix(self, matrix):
+        """Decrypt a PyCtxt nD matrix in a float nD matrix.
+        Parameters
+        ----------
+        matrix : nD-np.array( dtype=PyCtxt )
+            matrix to be decrypted
+        Returns
+        -------
+        matrix
+            nD-np.array( dtype=float ) with plain values
+        """
+        try:
+            return np.array(list(map(self.decrypt, matrix)))
+        except TypeError:
+            return np.array([self.decrypt_matrix(m) for m in matrix])
+
+    def encode_number(self, number):
+        return self.encode(number)
+
+    def power(self, number, exp):
+        return number * number
+
+    def noise_budget(self, ciphertext):
+        return None

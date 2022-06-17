@@ -1,4 +1,4 @@
-from pycrcnn.convolutional.convolutional_layer import ConvolutionalLayer
+from pycrcnn.convolutional.convolutional_layer import Conv2d, Conv1d
 from pycrcnn.functional.average_pool import AveragePoolLayer
 from pycrcnn.functional.flatten_layer import FlattenLayer
 from pycrcnn.functional.square_layer import SquareLayer
@@ -21,16 +21,27 @@ class Sequential:
 
         # Define builders for every possible layer
 
-        def conv_layer(layer):
+        def conv2d(layer):
             if layer.bias is None:
                 bias = None
             else:
                 bias = layer.bias.detach().numpy()
 
-            return ConvolutionalLayer(HE, weights=layer.weight.detach().numpy(),
-                                      stride=layer.stride,
-                                      padding=layer.padding,
-                                      bias=bias)
+            return Conv2d(HE, weights=layer.weight.detach().numpy(),
+                          stride=layer.stride,
+                          padding=layer.padding,
+                          bias=bias)
+
+        def conv1d(layer):
+            if layer.bias is None:
+                bias = None
+            else:
+                bias = layer.bias.detach().numpy()
+
+            return Conv1d(HE, weights=layer.weight.detach().numpy(),
+                          stride=layer.stride,
+                          padding=layer.padding,
+                          bias=bias)
 
         def lin_layer(layer):
             if layer.bias is None:
@@ -57,14 +68,15 @@ class Sequential:
             return SquareLayer(HE)
 
         # Maps every PyTorch layer type to the correct builder
-        options = {"Conv": conv_layer,
-                   "Line": lin_layer,
-                   "Flat": flatten_layer,
-                   "AvgP": avg_pool_layer,
-                   "Squa": square_layer
+        options = {"Conv2d": conv2d,
+                   "Conv1d": conv1d,
+                   "Linear": lin_layer,
+                   "Flatte": flatten_layer,
+                   "AvgPoo": avg_pool_layer,
+                   "Square": square_layer
                    }
 
-        self.layers = [options[str(layer)[0:4]](layer) for layer in model]
+        self.layers = [options[str(layer)[0:6]](layer) for layer in model]
 
     def __call__(self, x, debug=False):
         for layer in self.layers:
@@ -73,3 +85,4 @@ class Sequential:
                 print(f"Passed layer: {layer}")
                 print(f"Noise Budget: {self.HE.noise_budget(x.item(0))}")
         return x
+
