@@ -1,6 +1,3 @@
-from ..crypto import crypto as cr
-
-
 class RencryptionLayer:
     """
     A class used to represent a layer which decrypts and then
@@ -26,5 +23,5 @@ class RencryptionLayer:
         self.HE = HE
 
     def __call__(self, image):
-        plain = cr.decrypt_matrix(self.HE, image)
-        return cr.encrypt_matrix(self.HE, plain)
+        plain = self.HE.decrypt_matrix(image)
+        return self.HE.encrypt_matrix(plain)

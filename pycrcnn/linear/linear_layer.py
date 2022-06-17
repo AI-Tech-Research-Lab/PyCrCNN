@@ -1,8 +1,5 @@
 import numpy as np
 
-from ..crypto import crypto as c
-from ..he.HE import CKKSPyfhel
-
 
 class LinearLayer:
     """

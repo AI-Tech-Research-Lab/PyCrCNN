@@ -1,26 +1,20 @@
 import pytest
 
 import numpy as np
-from Pyfhel import Pyfhel
 
 from pycrcnn.functional import average_pool as avg
 from pycrcnn.functional import square_layer as sq
-from pycrcnn.crypto import crypto as cr
 from pycrcnn.functional.average_pool import AveragePoolLayer
 from pycrcnn.functional.rencryption_layer import RencryptionLayer
 from pycrcnn.functional.flatten_layer import FlattenLayer
-
-
-@pytest.fixture
-def HE():
-    HE = Pyfhel()
-    HE.contextGen(m=4096, p=655137)
-    HE.keyGen()
-    HE.relinKeyGen(60, 3)
-    return HE
+from pycrcnn.he.HE import MockHE
 
 
 class TestsAverageLayer:
+    @pytest.fixture
+    def HE(self):
+        HE = MockHE()
+        return HE
 
     @pytest.fixture
     def image(self):
@@ -199,11 +193,11 @@ class TestsAverageLayer:
         ]
     )
     def test_avg_pool2d(self, HE, image, kernel_size, stride, padding, expected_result):
-        encrypted_image = cr.encrypt_matrix(HE, image)
+        encrypted_image = HE.encrypt_matrix(image)
 
         avg_layer = AveragePoolLayer(HE, kernel_size=kernel_size, stride=stride, padding=padding)
 
-        result = cr.decrypt_matrix(HE, avg_layer(encrypted_image))
+        result = HE.decrypt_matrix(avg_layer(encrypted_image))
 
         assert np.allclose(result, expected_result, rtol=1e-3)
 
@@ -226,11 +220,11 @@ class TestsAverageLayer:
             , [0, 1, 1, 0, 0]
         ]]])
 
-        encrypted_image = cr.encrypt_matrix(HE, image)
+        encrypted_image = HE.encrypt_matrix(image)
 
         encrypted_result = avg._avg(HE, encrypted_image[0][0], kernel_size=(3, 3), stride=(2, 2))
 
-        result = cr.decrypt_matrix(HE, encrypted_result)
+        result = HE.decrypt_matrix(encrypted_result)
 
         expected_result = np.array(
             [[0.1111, 0.3333],
@@ -240,6 +234,11 @@ class TestsAverageLayer:
 
 
 class TestsSquareLayer:
+    @pytest.fixture
+    def HE(self):
+        HE = MockHE()
+        return HE
+
     def test_square_layer(self, HE):
         image = np.array([
             [
@@ -309,10 +308,10 @@ class TestsSquareLayer:
             ]
         ])
 
-        encrypted_image = cr.encrypt_matrix(HE, image)
+        encrypted_image = HE.encrypt_matrix(image)
         encrypted_result = sq.square(HE, encrypted_image)
 
-        result = cr.decrypt_matrix(HE, encrypted_result)
+        result = HE.decrypt_matrix(encrypted_result)
 
         assert np.allclose(expected_result, result, rtol=1e-3)
 
@@ -329,26 +328,31 @@ class TestsSquareLayer:
                     , [0, 4, 1, 1, 1]
                 ])
 
-        encrypted_image = cr.encrypt_matrix(HE, image)
+        encrypted_image = HE.encrypt_matrix(image)
         encrypted_result = sq.square(HE, encrypted_image)
 
-        result = cr.decrypt_matrix(HE, encrypted_result)
+        result = HE.decrypt_matrix(encrypted_result)
 
         assert np.allclose(expected_result, result, rtol=1e-3)
 
 
 class TestsRencryptionLayer:
+    @pytest.fixture
+    def HE(self):
+        HE = MockHE()
+        return HE
+
     def test_rencryption_layer(self, HE):
         image = np.array([
                       [1, 1, -1, 0, 0],
                       [1, 0, 1, 1, 0]])
 
-        enc_image = cr.encrypt_matrix(HE, image)
+        enc_image = HE.encrypt_matrix(image)
         rencryption_layer = RencryptionLayer(HE)
 
         enc_result = rencryption_layer(enc_image)
 
-        result = cr.decrypt_matrix(HE, enc_result)
+        result = HE.decrypt_matrix(enc_result)
         assert np.allclose(image, result)
 
 

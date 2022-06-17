@@ -61,11 +61,8 @@ class HE:
 
 
 class BFVPyfhel(HE):
-    def __init__(self, m, p=None, p_bits=None, sec=128):
+    def __init__(self, m=2048, p=None, p_bits=20, sec=128):
         self.he = Pyfhel()
-        if p is None and p_bits is None:
-            raise Exception("Specify at least one between p and p_bits.")
-
         if p_bits is None:
             self.he.contextGen(scheme='bfv', t=p, n=m, sec=sec)
         else:
@@ -196,9 +193,9 @@ class BFVPyfhel(HE):
 
 
 class CKKSPyfhel(HE):
-    def __init__(self, n=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
+    def __init__(self, m=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
         self.he = Pyfhel()
-        self.he.contextGen(scheme='ckks', n=n, scale=scale, qi=qi)
+        self.he.contextGen(scheme='ckks', n=m, scale=scale, qi=qi)
 
     def encode(self, x):
         if isinstance(x, np.ndarray):
@@ -459,8 +456,8 @@ class BFVPyfhel_Fractional(HE):
 
 
 class CKKSTenSEAL(HE):
-    def __init__(self, n=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
-        self.he = ts.context(ts.SCHEME_TYPE.CKKS, n, coeff_mod_bit_sizes=qi)
+    def __init__(self, m=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
+        self.he = ts.context(ts.SCHEME_TYPE.CKKS, m, coeff_mod_bit_sizes=qi)
         self.he.global_scale = scale
 
     def encode(self, x):
@@ -568,6 +565,79 @@ class CKKSTenSEAL(HE):
 
     def power(self, number, exp):
         return number * number
+
+    def noise_budget(self, ciphertext):
+        return None
+
+
+class MockHE(HE):
+    """
+    For testing purposes.
+    """
+    def __init__(self):
+        pass
+
+    def encode(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def decode(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def encrypt(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def decrypt(self, x):
+        if isinstance(x, np.ndarray):
+            raise TypeError
+        return x
+
+    def generate_keys(self):
+        pass
+
+    def get_public_key(self):
+        pass
+
+    def get_relin_key(self):
+        pass
+
+    def load_public_key(self, key):
+        pass
+
+    def load_relin_key(self, key):
+        pass
+
+    def encode_matrix(self, matrix):
+        try:
+            return np.array(list(map(self.encode, matrix)))
+        except TypeError:
+            return np.array([self.encode_matrix(m) for m in matrix])
+
+    def decode_matrix(self, matrix):
+        try:
+            return np.array(list(map(self.decode, matrix)))
+        except TypeError:
+            return np.array([self.decode_matrix(m) for m in matrix])
+
+    def encrypt_matrix(self, matrix):
+        try:
+            return np.array(list(map(self.encrypt, matrix)))
+        except TypeError:
+            return np.array([self.encrypt_matrix(m) for m in matrix])
+
+    def decrypt_matrix(self, matrix):
+        try:
+            return np.array(list(map(self.decrypt, matrix)))
+        except TypeError:
+            return np.array([self.decrypt_matrix(m) for m in matrix])
+
+    def power(self, number, exp):
+        return number ** exp
 
     def noise_budget(self, ciphertext):
         return None

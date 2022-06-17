@@ -1,21 +1,16 @@
 import numpy as np
 import pytest
-from Pyfhel import Pyfhel
 
 from pycrcnn.convolutional import convolutional_layer as conv
-from pycrcnn.convolutional.convolutional_layer import ConvolutionalLayer
-from pycrcnn.crypto import crypto as cr
+from pycrcnn.convolutional.convolutional_layer import Conv2d
+from pycrcnn.he.HE import MockHE
 
 
-class TestsConvolutionalLayer:
+class TestsConv2d:
 
     @pytest.fixture
     def HE(self):
-        HE = Pyfhel()
-        HE.contextGen(m=2048, p=65537)
-        HE.keyGen()
-        HE.relinKeyGen(60, 3)
-
+        HE = MockHE()
         return HE
 
     @pytest.fixture
@@ -292,11 +287,11 @@ class TestsConvolutionalLayer:
         ]
     )
     def test_conv(self, HE, image, weights, bias, stride, padding, expected_result):
-        encrypted_image = cr.encrypt_matrix(HE, image)
+        encrypted_image = HE.encrypt_matrix(image)
 
-        conv_layer = ConvolutionalLayer(HE, weights, stride=stride, padding=padding, bias=bias)
+        conv_layer = Conv2d(HE, weights, stride=stride, padding=padding, bias=bias)
 
-        result = cr.decrypt_matrix(HE, conv_layer(encrypted_image))
+        result = HE.decrypt_matrix(conv_layer(encrypted_image))
 
         assert np.allclose(result, expected_result, rtol=1e-2)
 
@@ -329,17 +324,17 @@ class TestsConvolutionalLayer:
             , [1, 0, 1]
         ]]])
 
-        encrypted_image = cr.encrypt_matrix(HE, image)
-        encoded_filter = cr.encode_matrix(HE, filter_matrix)
+        encrypted_image = HE.encrypt_matrix(image)
+        encoded_filter = HE.encode_matrix(filter_matrix)
 
         encrypted_result = conv.convolute2d(encrypted_image[0][0], encoded_filter[0][0], (1, 1))
 
-        assert HE.decryptFrac(encrypted_result[0][0]) == 4
-        assert HE.decryptFrac(encrypted_result[0][1]) == 3
-        assert HE.decryptFrac(encrypted_result[0][2]) == 4
-        assert HE.decryptFrac(encrypted_result[1][0]) == 2
-        assert HE.decryptFrac(encrypted_result[1][1]) == 4
-        assert HE.decryptFrac(encrypted_result[1][2]) == 3
-        assert HE.decryptFrac(encrypted_result[2][0]) == 2
-        assert HE.decryptFrac(encrypted_result[2][1]) == 3
-        assert HE.decryptFrac(encrypted_result[2][2]) == 4
+        assert HE.decrypt(encrypted_result[0][0]) == 4
+        assert HE.decrypt(encrypted_result[0][1]) == 3
+        assert HE.decrypt(encrypted_result[0][2]) == 4
+        assert HE.decrypt(encrypted_result[1][0]) == 2
+        assert HE.decrypt(encrypted_result[1][1]) == 4
+        assert HE.decrypt(encrypted_result[1][2]) == 3
+        assert HE.decrypt(encrypted_result[2][0]) == 2
+        assert HE.decrypt(encrypted_result[2][1]) == 3
+        assert HE.decrypt(encrypted_result[2][2]) == 4

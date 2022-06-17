@@ -1,7 +1,5 @@
 import numpy as np
-
 from pycrcnn.functional.padding import apply_padding
-from pycrcnn.he.HE import CKKSPyfhel
 
 
 class Conv2d:
@@ -44,12 +42,7 @@ class Conv2d:
             self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
-        # t = apply_padding(t, self.padding)
-        # if isinstance(self.HE, CKKSPyfhel):
-        #     for w in np.ravel(self.weights):
-        #         for i in range(0, t[0][0][0][0].mod_level):
-        #             self.HE.he.mod_switch_to_next(w)
-
+        t = apply_padding(t, self.padding)
         result = np.array([[np.sum([convolute2d(image_layer, filter_layer, self.stride)
                                     for image_layer, filter_layer in zip(image, _filter)], axis=0)
                             for _filter in self.weights]
@@ -114,7 +107,7 @@ class Conv1d:
             self.bias = HE.encode_matrix(bias)
 
     def __call__(self, t):
-        # t = apply_padding(t, self.padding)
+        t = apply_padding(t, self.padding)
         result = np.array([[np.sum([convolute1d(ts_layer, filter_layer, self.stride)
                                     for ts_layer, filter_layer in zip(_ts, _filter)], axis=0)
                              for _filter in self.weights]
