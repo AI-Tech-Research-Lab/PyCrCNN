@@ -195,7 +195,7 @@ class BFVPyfhel(HE):
 class CKKSPyfhel(HE):
     def __init__(self, m=2**14, scale=2**30, qi=[60, 30, 30, 30, 60]):
         self.he = Pyfhel()
-        self.he.contextGen(scheme='ckks', n=m, scale=scale, qi=qi)
+        self.he.contextGen(scheme='ckks', n=m, scale=scale, qi_sizes=qi)
 
     def encode(self, x):
         if isinstance(x, np.ndarray):
@@ -219,6 +219,7 @@ class CKKSPyfhel(HE):
 
     def generate_keys(self):
         self.he.keyGen()
+        self.he.rotateKeyGen()
 
     def generate_relin_keys(self):
         self.he.relinKeyGen()
