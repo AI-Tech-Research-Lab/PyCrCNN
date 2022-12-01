@@ -1,9 +1,12 @@
 # PyCrCNN
-
 PyCrCNN is the implementation of a privacy-respectful Machine Learning as a Service (MLaaS) which use Homomorphic Encryption (HE).
 The application has been tailored on Convolutional Neural Networks (CNNs).
 
 PyCrCNN has been introduced in the [paper](https://arxiv.org/pdf/2003.13541.pdf) "A Privacy-Preserving Distributed Architecture for Deep-Learning-as-a-Service".
+
+**For an introduction to Homomorphic Encryption, check out our [new work](https://github.com/AlexMV12/Introduction-to-BFV-HE-ML)!**
+
+*Disclaimer: we are working on the topic, so, expect changes in this repo.*
 
 ## Introduction
 PyCrCNN is a client/server application in which the server can run a Convolutional Neural Network on some data coming from a client.
@@ -12,12 +15,12 @@ The peculiarity of this application is that Homomorphic Encryption is used: the 
 Computation on encrypted data is still allowed by the mathematical properties of this kind of encryption which is, in fact, homomorphic with respect to addition and multiplication. This means that the models have to be approximated, in order to contain only additions and multiplications.
 
 ## External libraries used
-For this application, these external libraries are used:
+You can install them using the provided `requirements.txt` file.
+WARNING: to install [Pyfhel](https://github.com/ibarrond/Pyfhel) a small modification is needed (check this [issue](https://github.com/ibarrond/Pyfhel/issues/124)).
+It is suggested to clone Pyfhel using the instructions on their repo (to correctly crone all the submodules), modify `pyproject.toml` to set the `SEAL_THROW_ON_TRANSPARENT_CIPHERTEXT` to `OFF` and install from there with `pip install .`.
 
-1. [Pyfhel](https://github.com/ibarrond/Pyfhel) - Homomorphic Encryption library
-2. [numpy](https://numpy.org/) - Scientific computations
-3. [jsonpickle](https://jsonpickle.github.io/index.html) - Serialization and deserialization of complex Python objects to and from JSON
-4. [flask](https://flask.palletsprojects.com/en/) - Micro Web Framework
+## How to use
+Clone the repo, install the dependencies and try to run the notebook `HE-ML/HE-ML_CKKS.ipynb`. It will give you a fair introduction to the package.
 
 ## Package organization
 
@@ -32,22 +35,8 @@ For this application, these external libraries are used:
 
 ## Functionalities
 
-### Homomorphic Encryption
-Every time a "HE" object is used, it refers to a Pyfhel object.
-Usually, a Pyfhel object is built this way:
-
-
-```python
-HE = Pyfhel()
-HE.contextGen(p=65537)
-HE.keyGen()
-HE.relinKeyGen(20, 10)
-```
-
-In the contextGen many others encryption parameters can be specified; refer to [Pyfhel documentation for more information](https://ibarrond.github.io/Pyfhel/html/index.html#Pyfhel.Pyfhel.contextGen).
-
 ### Encoded layers
-Encoded layers are layers with the same characteristics of a normal PyTorch layer, but its weights have been encoded: this means that they are good to work on encrypted data.
+Encoded layers are layers with the same characteristics of a normal PyTorch layer, but their weights have been encoded: this means that they are good to work on encrypted data.
 
 In fact, in a normal forward on a normal CNN, computations between numbers are of the type:
 
@@ -149,8 +138,3 @@ An example of client parameters is:
 
 In this example, the client is asking to forward the image on the net called "MNIST", only on layers from 0 to 3.
 The client has encrypted the image with such parameters: the server will encode the model with them as well.
-
-
-```python
-
-```
