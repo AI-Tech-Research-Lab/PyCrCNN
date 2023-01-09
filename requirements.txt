@@ -41,7 +41,7 @@ prompt-toolkit==3.0.33
 psutil==5.9.4
 ptyprocess==0.7.0
 pure-eval==0.2.2
--e git+ssh://git@github.com/AlexMV12/PyCrCNN.git@e470695f05c7efa49fdd1ddfa25af4821034aec5#egg=pycrcnn
+-e git+https://github.com/AlexMV12/PyCrCNN.git@e470695f05c7efa49fdd1ddfa25af4821034aec5#egg=pycrcnn
 Pyfhel==3.3.1
 Pygments==2.13.0
 pyparsing==3.0.9
