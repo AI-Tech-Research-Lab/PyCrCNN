@@ -22,6 +22,13 @@ It is suggested to clone Pyfhel using the instructions on their repo (to correct
 ## How to use
 Clone the repo, install the dependencies and try to run the notebook `HE-ML/HE-ML_CKKS.ipynb`. It will give you a fair introduction to the package.
 
+### Docker
+You can also use Docker in order to start a Jupyter Notebook with all the dependencies installed and correctly configured:
+```bash
+docker run --publish 8888:8888 alexmv12/pycrcnn
+```
+then, just open the link to the Jupyter notebook. 
+
 ## Package organization
 
 - convolutional: Code for convolutional layers
