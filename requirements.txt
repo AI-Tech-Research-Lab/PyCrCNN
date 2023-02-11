@@ -14,7 +14,7 @@ fonttools==4.38.0
 idna==3.4
 importlib-metadata==5.1.0
 ipykernel==6.17.1
-ipython==8.7.0
+ipython==8.10.0
 itsdangerous==2.1.2
 jedi==0.18.2
 Jinja2==3.1.2
